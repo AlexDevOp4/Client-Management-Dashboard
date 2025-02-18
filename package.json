@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "concurrently \"npm run dev\" \"cd ../saas-dashboard-backend && npm run serve\"",
     "lint": "next lint"
   },
   "dependencies": {
@@ -14,6 +14,7 @@
     "@tailwindcss/postcss": "^4.0.6",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.9",
+    "concurrently": "^9.1.2",
     "next": "15.1.7",
     "next-auth": "^4.24.11",
     "next-dark-mode": "^3.0.0",

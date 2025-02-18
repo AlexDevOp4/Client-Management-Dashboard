@@ -1,24 +1,40 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-export default function Dashboard() {
-  const router = useRouter();
-  const [user, setUser] = useState(null);
+import API from "../utils/api";
 
-  const handleLogout = () => {
-    router.push("/");
-  };
+export default function Dashboard() {
+  const [user, setUser] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
-    // TODO: Fetch user from backend
-    setUser({ name: "John Doe", role: "Trainer" });
+    const fetchUser = async () => {
+      try {
+        const { data } = await API.get("/auth/me"); // ✅ Fetch user data
+        setUser(data.user);
+      } catch (error) {
+        localStorage.removeItem("token"); // Clear token if unauthorized
+        router.push("/"); // Redirect to login
+      }
+    };
+
+    fetchUser();
   }, []);
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold">Welcome, {user?.name}!</h1>
+      <h1 className="text-2xl font-bold">Welcome, {user?.email}!</h1>
       <p>Your role: {user?.role}</p>
-      <button onClick={handleLogout} className="bg-red-500 text-white p-2 rounded mt-4">Logout</button>
+      <button
+        className="bg-red-500 text-white p-2 rounded mt-4"
+        onClick={() => {
+          localStorage.removeItem("token");
+          router.push("/");
+        }}
+      >
+        Logout
+      </button>
     </div>
   );
 }
+

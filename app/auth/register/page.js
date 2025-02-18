@@ -1,6 +1,8 @@
-"use client"
+"use client";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import API from "../../utils/api";
 
 export default function Register() {
   const { register, handleSubmit } = useForm();
@@ -9,7 +11,17 @@ export default function Register() {
   const onSubmit = async (data) => {
     console.log("Register Data:", data);
     // TODO: Send to backend API
-    router.push("/dashboard");
+
+    try {
+      const registerUser = await API.post("/auth/register", data);
+
+      if (registerUser.status === 201) {
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Register failed:", error);
+      return;
+    }
   };
 
   return (
@@ -49,6 +61,12 @@ export default function Register() {
             Sign Up
           </button>
         </form>
+        <p className="text-center mt-4">
+          Already have an account?{" "}
+          <Link className="text-blue-500" href="/">
+            Login
+          </Link>
+        </p>
       </div>
     </div>
   );

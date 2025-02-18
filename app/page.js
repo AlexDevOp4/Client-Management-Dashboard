@@ -1,32 +1,50 @@
-"use client"
-import { useForm } from "react-hook-form";
+"use client";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import API from "./utils/api";
 
 export default function Login() {
-  const { register, handleSubmit } = useForm();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const onSubmit = async (data) => {
-    console.log("Login Data:", data);
-    // TODO: Send to backend API
-    router.push("/dashboard");
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const { data } = await API.post("/auth/login", { email, password });
+
+      // ✅ Save token to localStorage
+      localStorage.setItem("token", data.token);
+
+      // ✅ Redirect to dashboard
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        <form onSubmit={handleLogin}>
           <input
             type="email"
             placeholder="Email"
-            {...register("email")}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full p-2 mb-3 border rounded"
           />
           <input
             type="password"
             placeholder="Password"
-            {...register("password")}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full p-2 mb-3 border rounded"
           />
           <button
@@ -36,11 +54,8 @@ export default function Login() {
             Login
           </button>
         </form>
-        <p className="mt-3 text-center">
-          Don't have an account?{" "}
-          <a href="/register" className="text-blue-500">
-            Sign Up
-          </a>
+        <p className="text-center mt-4">
+          Don&apos;t have an account? <Link className="text-blue-500" href="/register">Register</Link>
         </p>
       </div>
     </div>
