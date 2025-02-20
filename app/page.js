@@ -16,12 +16,14 @@ export default function Login() {
 
     try {
       const { data } = await API.post("/auth/login", { email, password });
+      console.log("Login successful", data);
 
-      // ✅ Save token to localStorage
+      // Save token to localStorage
       localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role);
 
-      // ✅ Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect based on role
+      router.push(`/dashboard/${data.user.role}`);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }
@@ -55,7 +57,10 @@ export default function Login() {
           </button>
         </form>
         <p className="text-center mt-4">
-          Don&apos;t have an account? <Link className="text-blue-500" href="/register">Register</Link>
+          Don&apos;t have an account?{" "}
+          <Link className="text-blue-500" href="/register">
+            Register
+          </Link>
         </p>
       </div>
     </div>

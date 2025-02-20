@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import API from "../../utils/api";
 
@@ -14,10 +14,23 @@ const CreateClientPage = () => {
     bodyFat: 0,
   });
 
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await API.get("/auth/me");
+        setUserData(response.data.user);
+      } catch (error) {
+        console.error("Error fetching client profile", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
   // Handle form input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,12 +67,7 @@ const CreateClientPage = () => {
     console.log(formDataToSend);
 
     try {
-      const userData = await API.get("/auth/me");
-      console.log(userData.data.user.id);
-      const response = await API.post(
-        `/client/${userData.data.user.id}`,
-        formDataToSend
-      );
+      const response = await API.post(`/client/${userData.id}`, formDataToSend);
       setSuccess("Client created successfully!");
       setFormData({
         email: "",
@@ -79,7 +87,7 @@ const CreateClientPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-lg bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center mb-6">
-          Create New Client
+          Create New Client 
         </h2>
 
         {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
@@ -169,7 +177,7 @@ const CreateClientPage = () => {
 
         <button
           className="w-full mt-4 text-sm text-gray-500 hover:text-gray-700"
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push(`/dashboard/${userData.role}`)}
         >
           Back to Dashboard
         </button>
