@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import API from "../../utils/api";
 
 export default function ResetPassword() {
   const [email, setEmail] = useState("");
@@ -16,19 +17,26 @@ export default function ResetPassword() {
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      setMessage("Passwords do not match.");
-      return;
-    }
+    // if (newPassword !== confirmPassword) {
+    //   setMessage("Passwords do not match.");
+    //   return;
+    // }
 
     // Emulate password reset logic
     try {
       // Placeholder for actual password reset API call
+      await API.post("/user/update-password", {
+        email,
+        confirmPassword,
+        newPassword,
+      });
+      // Simulate success response
       console.log(`Resetting password for: ${email}`);
       console.log(`New password: ${newPassword}`);
 
       setMessage("Password has been reset successfully.");
     } catch (error) {
+      console.log(error)
       setMessage("Failed to reset password. Please try again.");
     }
   };
@@ -58,6 +66,19 @@ export default function ResetPassword() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Confirm new password"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
               New Password
             </label>
             <input
@@ -66,19 +87,6 @@ export default function ResetPassword() {
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="Enter new password"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="Confirm new password"
               required
             />
           </div>
