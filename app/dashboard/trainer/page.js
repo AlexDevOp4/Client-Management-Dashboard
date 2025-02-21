@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import API from "../../utils/api";
+import withAuth from "../../components/withAuth";
 
 const TrainerDashboard = () => {
   const router = useRouter();
@@ -12,7 +13,11 @@ const TrainerDashboard = () => {
       try {
         const response = await API.get("/auth/me");
         const user = await API.get(`/user/${response.data.user.id}`);
-        setClients(user.data.clients);
+        if (user.data.role !== "trainer") {
+          router.push("/");
+        } else {
+          setClients(user.data.clients);
+        }
       } catch (error) {
         console.error("Error fetching clients", error);
       }
@@ -47,4 +52,4 @@ const TrainerDashboard = () => {
   );
 };
 
-export default TrainerDashboard;
+export default withAuth(TrainerDashboard, ["trainer"]);
