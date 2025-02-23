@@ -87,7 +87,7 @@ const CreateClientPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-lg bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center mb-6">
-          Create New Client 
+          Create New Client
         </h2>
 
         {error && <div className="mb-4 text-red-500 text-center">{error}</div>}

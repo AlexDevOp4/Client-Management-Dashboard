@@ -3,10 +3,17 @@ import { useEffect, useState } from "react";
 import API from "../../utils/api";
 import withAuth from "../../components/withAuth";
 import { useRouter } from "next/navigation";
+import { useCookies } from "react-cookie";
 
 const ClientDashboard = () => {
   const router = useRouter();
   const [clientData, setClientData] = useState(null);
+  const [cookies, setCookie, removeToken] = useCookies(["token", "role"]);
+
+  const handleLogout = () => {
+    removeToken(["token", "role"]);
+    router.push("/");
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -15,14 +22,12 @@ const ClientDashboard = () => {
         console.log(response.data);
         const user = await API.get(`/user/${response.data.user.id}`);
         setClientData(user.data);
-
       } catch (error) {
         console.error("Error fetching client profile", error);
       }
     };
 
     fetchProfile();
-
   }, []);
 
   return (

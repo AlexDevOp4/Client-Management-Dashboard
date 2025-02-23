@@ -9,17 +9,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [cookies, setCookie, removeToken] = useCookies(["token", "role"]);
+  const [cookie, setCookie] = useCookies(["token", "role"]);
   const router = useRouter();
-
-  const handleLogout = () => {
-    removeToken(["token"]);
-    // localStorage.removeItem("token");
-    // localStorage.removeItem("role");
-
-    // Redirect to login page
-    router.push("/");
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -29,15 +20,11 @@ export default function Login() {
       const { data } = await API.post("/auth/login", { email, password });
       console.log("Login successful", data);
 
-      setCookie("token", data.token);
+      // setCookie("token", data.token);
       setCookie("role", data.user.role);
 
-      // Save token to localStorage
-      // localStorage.setItem("token", data.token);
-      // localStorage.setItem("role", data.user.role);
-
-      // // Redirect based on role
-      // router.push(`/dashboard/${data.user.role}`);
+      // Redirect based on role
+      router.push(`/dashboard/${data.user.role}`);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }
@@ -69,16 +56,10 @@ export default function Login() {
           >
             Login
           </button>
-          <button
-            onClick={handleLogout}
-            className="w-full bg-red-500 text-white p-2 rounded mt-2"
-          >
-            Logout
-          </button>
         </form>
         <p className="text-center mt-4">
           Don&apos;t have an account?{" "}
-          <Link className="text-blue-500" href="/register">
+          <Link className="text-blue-500" href="/auth/register">
             Register
           </Link>
         </p>
