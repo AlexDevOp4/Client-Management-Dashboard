@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import API from "../../utils/api";
 import withAuth from "../../components/withAuth";
+import Link from "next/link";
 
 const TrainerDashboard = () => {
   const router = useRouter();
@@ -12,7 +13,10 @@ const TrainerDashboard = () => {
     const fetchClients = async () => {
       try {
         const response = await API.get("/auth/me");
-        const user = await API.get(`/user/${response.data.user.id}`);
+        console.log(response.data);
+        const trainerId = response.data.user.id;
+        const user = await API.get(`/user/${trainerId}`);
+        console.log(user.data.clients);
         if (user.data.role !== "trainer") {
           router.push("/");
         } else {
@@ -23,8 +27,23 @@ const TrainerDashboard = () => {
       }
     };
 
+    const getProgress = async () => {
+      const data = await fetchClientProgress(1, 1, 1);
+    };
+
     fetchClients();
-  }, []);
+  }, [router]);
+
+  const fetchClientProgress = async (trainerId, clientId, exerciseId) => {
+    try {
+      const response = await API.get(
+        `trainer/${trainerId}/clients/${clientId}/exercises/${exerciseId}/progress`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching client progress", error);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -41,7 +60,12 @@ const TrainerDashboard = () => {
         {clients.length > 0 ? (
           clients.map((client) => (
             <li key={client.userId} className="border p-2 mt-2">
-              {client.name}
+              <Link
+ 
+                href={`/dashboard/trainer/client/${client.userId}`}
+              >
+                {client.name}
+              </Link>
             </li>
           ))
         ) : (
