@@ -2,198 +2,232 @@
 
 import {
   Disclosure,
-  DisclosureButton,
   DisclosurePanel,
   Menu,
   MenuButton,
   MenuItem,
   MenuItems,
+  Transition,
 } from "@headlessui/react";
 import API from "../utils/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useRouter, usePathname } from "next/navigation";
 import { useCookies } from "react-cookie";
 import Cookies from "js-cookie";
+import { Image } from "next/image";
 
-export default function Navbar() {
+const Navbar = () => {
   const [cookie, setCookie] = useCookies(["token", "role"]);
-  const [isClient, setIsClient] = useState(false);
-  const hiddenRoutes = ["/", "/auth/register"];
+  const [userRole, setUserRole] = useState(null);
+  const hiddenRoutes = ["/", "/auth/register", "/auth/login"];
 
   const router = useRouter();
   const pathname = usePathname();
 
-  // Ensure this runs only on the client-side
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setUserRole(cookie.role || null);
+  }, [cookie]);
 
   const handleLogout = async () => {
-    // Remove token from cookies
     try {
       await API.post("/auth/logout", {}, { withCredentials: true });
       Cookies.remove("token");
       Cookies.remove("role");
-      setIsClient(false);
-
-      // Redirect to login page
       router.push("/");
     } catch (error) {
       console.log("Error logging out", error);
-      return error;
     }
   };
 
-  if (hiddenRoutes.includes(pathname)) {
-    return null; // Hide Navbar on these routes
-  }
+  if (hiddenRoutes.includes(pathname)) return null; // Hide navbar on auth pages
 
   return (
     <Disclosure as="nav" className="bg-white shadow">
-      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-        <div className="relative flex h-16 justify-between">
-          <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
-            {/* Mobile menu button */}
-            <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-              <span className="absolute -inset-0.5" />
-              <span className="sr-only">Open main menu</span>
-              <Bars3Icon
-                aria-hidden="true"
-                className="block size-6 group-data-[open]:hidden"
-              />
-              <XMarkIcon
-                aria-hidden="true"
-                className="hidden size-6 group-data-[open]:block"
-              />
-            </DisclosureButton>
-          </div>
-          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-            <div className="flex shrink-0 items-center">
-              <img
-                alt="Your Company"
-                src="https://tailwindui.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                className="h-8 w-auto"
-              />
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {/* Current: "border-indigo-500 text-gray-900", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
-              <a
-                href="#"
-                className="inline-flex items-center border-b-2 border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900"
-              >
-                Dashboard
-              </a>
-              <a
-                href="#"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                Team
-              </a>
-              <a
-                href="#"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                Projects
-              </a>
-              <a
-                href="#"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                Calendar
-              </a>
-            </div>
-          </div>
-          <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-            <button
-              type="button"
-              className="relative rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              <span className="absolute -inset-1.5" />
-              <span className="sr-only">View notifications</span>
-              <BellIcon aria-hidden="true" className="size-6" />
-            </button>
-
-            {/* Profile dropdown */}
-            <Menu as="div" className="relative ml-3">
-              <div>
-                <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                  <span className="absolute -inset-1.5" />
-                  <span className="sr-only">Open user menu</span>
-                  <img
-                    alt=""
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                    className="size-8 rounded-full"
-                  />
-                </MenuButton>
+      {({ open }) => (
+        <>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex h-16 justify-between items-center">
+              {/* Mobile Menu Button */}
+              <div className="sm:hidden">
+                <Disclosure.Button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:ring-2 focus:ring-indigo-500">
+                  {open ? (
+                    <XMarkIcon className="block h-6 w-6" />
+                  ) : (
+                    <Bars3Icon className="block h-6 w-6" />
+                  )}
+                </Disclosure.Button>
               </div>
-              <MenuItems
-                transition
-                className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-200 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-              >
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
-                  >
-                    Your Profile
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
-                  >
-                    Settings
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <button
-                    onClick={handleLogout}
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
-                  >
-                    Sign out
-                  </button>
-                </MenuItem>
-              </MenuItems>
-            </Menu>
-          </div>
-        </div>
-      </div>
 
-      <DisclosurePanel className="sm:hidden">
-        <div className="space-y-1 pb-4 pt-2">
-          {/* Current: "bg-indigo-50 border-indigo-500 text-indigo-700", Default: "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700" */}
-          <DisclosureButton
-            as="a"
-            href="#"
-            className="block border-l-4 border-indigo-500 bg-indigo-50 py-2 pl-3 pr-4 text-base font-medium text-indigo-700"
-          >
-            Dashboard
-          </DisclosureButton>
-          <DisclosureButton
-            as="a"
-            href="#"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-          >
-            Team
-          </DisclosureButton>
-          <DisclosureButton
-            as="a"
-            href="#"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-          >
-            Projects
-          </DisclosureButton>
-          <DisclosureButton
-            as="a"
-            href="#"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-          >
-            Calendar
-          </DisclosureButton>
-        </div>
-      </DisclosurePanel>
+              {/* Logo */}
+              <div className="flex-shrink-0"></div>
+
+              {/* Desktop Menu */}
+              <div className="hidden sm:flex sm:space-x-8">
+                <NavLink
+                  href={`/dashboard/${userRole}`}
+                  label="Dashboard"
+                  active={pathname === `/dashboard/${userRole}`}
+                />
+                {userRole === "trainer" && (
+                  <>
+                    <NavLink
+                      href="/dashboard/trainer/clients"
+                      label="Clients"
+                      active={pathname.includes("/dashboard/trainer/clients")}
+                    />
+                    <NavLink
+                      href="/dashboard/trainer/workouts/create"
+                      label="Workouts"
+                      active={pathname.includes(
+                        "dashboard/trainer/workouts/create"
+                      )}
+                    />
+                  </>
+                )}
+                {userRole === "client" && (
+                  <>
+                    <NavLink
+                      href="/dashboard/client/progress"
+                      label="Progress"
+                      active={pathname.includes("/dashboard/client/progress")}
+                    />
+                    <NavLink
+                      href="/dashboard/client/workouts"
+                      label="My Workouts"
+                      active={pathname.includes("/dashboard/client/workouts")}
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Notifications & Profile Menu */}
+              <div className="flex items-center">
+                <Menu as="div" className="relative ml-3">
+                  <div>
+                    <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                      <span className="absolute -inset-1.5" />
+                      <span className="sr-only">Open user menu</span>
+                      <BellIcon className="h-6 w-6" />
+                    </MenuButton>
+                  </div>
+
+                  <MenuItems
+                    className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 transition focus:outline-none 
+          data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 
+          data-[enter]:duration-200 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                  >
+                    <MenuItem>
+                      {({ active }) => (
+                        <a
+                          href="/profile"
+                          className={`block px-4 py-2 text-sm text-gray-700 ${active ? "bg-gray-100" : ""}`}
+                        >
+                          Your Profile
+                        </a>
+                      )}
+                    </MenuItem>
+                    <MenuItem>
+                      {({ active }) => (
+                        <a
+                          href="/settings"
+                          className={`block px-4 py-2 text-sm text-gray-700 ${active ? "bg-gray-100" : ""}`}
+                        >
+                          Settings
+                        </a>
+                      )}
+                    </MenuItem>
+                    <MenuItem>
+                      {({ active }) => (
+                        <button
+                          onClick={handleLogout}
+                          className={`block w-full text-left px-4 py-2 text-sm text-gray-700 ${active ? "bg-gray-100" : ""}`}
+                        >
+                          Sign out
+                        </button>
+                      )}
+                    </MenuItem>
+                  </MenuItems>
+                </Menu>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          <DisclosurePanel className="sm:hidden">
+            <div className="space-y-1 px-2 pb-3 pt-2">
+              <DisclosureButton
+                href={`/dashboard/${userRole}`}
+                label="Dashboard"
+                active={pathname === `/dashboard/${userRole}`}
+              />
+              {userRole === "trainer" && (
+                <>
+                  <DisclosureButton
+                    href="/dashboard/trainer/clients"
+                    label="Clients"
+                    active={pathname.includes("/dashboard/trainer/clients")}
+                  />
+                  <DisclosureButton
+                    href="dashboard/trainer/workouts/create"
+                    label="Workouts"
+                    active={pathname.includes(
+                      "dashboard/trainer/workouts/create"
+                    )}
+                  />
+                </>
+              )}
+              {userRole === "client" && (
+                <>
+                  <DisclosureButton
+                    href="/client/progress"
+                    label="Progress"
+                    active={pathname.includes("/client/progress")}
+                  />
+                  <DisclosureButton
+                    href="/client/workouts"
+                    label="My Workouts"
+                    active={pathname.includes("/client/workouts")}
+                  />
+                </>
+              )}
+              <DisclosureButton onClick={handleLogout} label="Logout" />
+            </div>
+          </DisclosurePanel>
+        </>
+      )}
     </Disclosure>
   );
-}
+};
+
+/**  Reusable Desktop Nav Link **/
+const NavLink = ({ href, label, active }) => (
+  <a
+    href={href}
+    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${
+      active
+        ? "border-indigo-500 text-gray-900"
+        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+    }`}
+  >
+    {label}
+  </a>
+);
+
+/**  Reusable Mobile Nav Button **/
+const DisclosureButton = ({ href, label, onClick, active }) => (
+  <Disclosure.Button
+    as="a"
+    href={href}
+    onClick={onClick}
+    className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${
+      active
+        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+        : "border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
+    }`}
+  >
+    {label}
+  </Disclosure.Button>
+);
+
+export default Navbar;

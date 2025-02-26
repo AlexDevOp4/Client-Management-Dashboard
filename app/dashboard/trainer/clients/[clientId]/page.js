@@ -1,11 +1,10 @@
 "use client";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import ProgressChart from "../../../../components/ProgressChart";
 import API from "../../../../utils/api";
 
 const ClientProfile = () => {
-  const router = useRouter();
   const { clientId } = useParams();
 
   const [progressData, setProgressData] = useState([]);
