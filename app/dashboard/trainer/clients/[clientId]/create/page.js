@@ -3,329 +3,285 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import API from "../../../../../utils/api";
 
-const CreateWorkout = () => {
-  const [clients, setClients] = useState([]);
-  const [title, setTitle] = useState("");
-  const [scheduledDate, setScheduledDate] = useState("");
-  const [exercises, setExercises] = useState([]);
+const CreateWorkoutProgram = () => {
+  const [programTitle, setProgramTitle] = useState("");
+  const [weeks, setWeeks] = useState([]);
   const [allExercises, setAllExercises] = useState([]);
-  const [userData, setUserData] = useState(null);
-  const [newExercise, setNewExercise] = useState({
-    name: "",
-    category: "",
-    sets: "",
-    reps: "",
-    timeInSeconds: "",
-    distanceInMeters: "",
-  });
-
+  const [trainerId, setTrainerId] = useState(null);
   const { clientId } = useParams();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "name") {
-      const foundExercise = allExercises.find((ex) => ex.name === value);
-      if (foundExercise) {
-        setNewExercise({
-          ...newExercise,
-          name: value,
-          category: foundExercise.category, // Auto-fill category
-        });
-      } else {
-        setNewExercise({
-          ...newExercise,
-          name: value,
-          category: "", // Reset if not found
-        });
-      }
-    } else {
-      setNewExercise((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await API.get("/auth/me");
-        setUserData(response.data.user.id);
+        setTrainerId(response.data.user.id);
       } catch (error) {
-        console.error("Error fetching user data", error);
+        console.error("Error fetching trainer ID", error);
       }
     };
-    fetchUser();
-  }, []);
 
-  /** ✅ Fetch Trainer's Clients **/
-  useEffect(() => {
-    if (!clientId) return; // Prevents running with undefined clientId
-
-    const fetchClients = async () => {
-      try {
-        const response = await API.get(`/trainer/clients`);
-        const filteredClients = response.data.filter(
-          (client) => client.userId === clientId
-        );
-        setClients(filteredClients);
-      } catch (error) {
-        console.error("Error fetching clients", error);
-      }
-    };
-    fetchClients();
-  }, [clientId]);
-
-  /** ✅ Fetch Available Exercises **/
-  useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const response = await API.get(`workouts/exercises`);
+        const response = await API.get(`/workouts/exercises`);
         setAllExercises(response.data);
       } catch (error) {
         console.error("Error fetching exercises", error);
       }
     };
+
+    fetchUser();
     fetchExercises();
   }, []);
 
-  /** ✅ Add Exercise to Workout **/
-  const addExercise = () => {
-    if (!newExercise.name || !newExercise.category) {
-      alert("Exercise name and category are required.");
-      return;
-    }
+  const addWeek = () => {
+    setWeeks((prevWeeks) => [
+      ...prevWeeks,
+      { weekNumber: prevWeeks.length + 1, days: [] },
+    ]);
+  };
 
-    if (
-      newExercise.category === "Strength" &&
-      (!newExercise.sets || !newExercise.reps)
-    ) {
-      alert("Sets and reps are required for Strength exercises.");
-      return;
-    }
-
-    setExercises([...exercises, newExercise]);
-    setNewExercise({
-      name: "",
-      category: "",
-      sets: "",
-      reps: "",
-      timeInSeconds: "",
-      distanceInMeters: "",
+  const addDay = (weekIndex) => {
+    setWeeks((prevWeeks) => {
+      const updatedWeeks = [...prevWeeks];
+      updatedWeeks[weekIndex].days.push({
+        dayNumber: updatedWeeks[weekIndex].days.length + 1,
+        exercises: [],
+      });
+      return updatedWeeks;
     });
   };
 
-  /** ✅ Submit Workout **/
-  const submitWorkout = async () => {
-    if (!title || !scheduledDate || exercises.length === 0) {
-      alert("Please fill in all fields before submitting.");
+  const addExerciseToDay = (weekIndex, dayIndex, exercise) => {
+    setWeeks((prevWeeks) => {
+      return prevWeeks.map((week, wIndex) => {
+        if (wIndex !== weekIndex) return week; // Keep other weeks unchanged
+
+        return {
+          ...week,
+          days: week.days.map((day, dIndex) => {
+            if (dIndex !== dayIndex) return day; // Keep other days unchanged
+
+            return {
+              ...day,
+              exercises: [...day.exercises, { ...exercise }], // ✅ Append exercise properly
+            };
+          }),
+        };
+      });
+    });
+
+    console.log(
+      `Exercise added to week ${weekIndex}, day ${dayIndex}:`,
+      exercise
+    );
+  };
+
+  const submitWorkoutProgram = async () => {
+    if (!trainerId || !clientId || !programTitle || weeks.length === 0) {
+      alert("Please enter a program title and add at least one week.");
       return;
     }
 
-    try {
-      await API.post("/workouts/create", {
-        trainerId: userData, // Replace with actual trainer ID
-        clientId,
-        title,
-        scheduledDate,
-        exercises,
-      });
+    const requestBody = {
+      trainerId,
+      clientId,
+      title: programTitle,
+      durationWeeks: weeks.length,
+      repeateWeek: 1, // Defaults to repeating week 1
+      weeks: weeks.map((week) => ({
+        weekNumber: week.weekNumber,
+        days: week.days.map((day) => ({
+          dayNumber: day.dayNumber,
+          title: `Day ${day.dayNumber}`,
+          scheduledDate: new Date(), // Assigns today as default
+          exercises: day.exercises.map((ex) => ({
+            name: ex.name,
+            category: ex.category,
+            sets: ex.sets ? parseInt(ex.sets) : null,
+            reps: ex.reps ? parseInt(ex.reps) : null,
+            distance: ex.distance ? parseFloat(ex.distance) : null,
+            calories: ex.calories ? parseFloat(ex.calories) : null,
+          })),
+        })),
+      })),
+    };
 
-      alert("Workout Created Successfully!");
-      setTitle("");
-      setScheduledDate("");
-      setExercises([]);
+    try {
+      console.log(requestBody);
+      await API.post("/workouts/program", requestBody);
+      alert("Workout Program Created Successfully!");
+      setProgramTitle("");
+      setWeeks([]);
     } catch (error) {
-      console.error("Error creating workout", error);
-      alert("Error creating workout");
+      console.error("Error creating workout program", error);
+      alert("Error creating workout program");
     }
   };
-
-  if (!userData) {
-    return <div>Loading...</div>;
-  }
-
 
   return (
     <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-        Create Workout
+        Create Workout Program
       </h2>
-
-      {/* Select Client */}
-      <label className="block text-gray-700 font-medium mb-2">
-        Selected Client: {clients[0]?.name || "Loading..."}
-      </label>
-
-      {/* Workout Details */}
-      <label className="block text-gray-700 font-medium mb-2">
-        Workout Title:
-      </label>
       <input
         type="text"
         className="w-full p-2 border rounded-md mb-4"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Program Title"
+        value={programTitle}
+        onChange={(e) => setProgramTitle(e.target.value)}
       />
-
-      <label className="block text-gray-700 font-medium mb-2">
-        Scheduled Date:
-      </label>
-      <input
-        type="date"
-        className="w-full p-2 border rounded-md mb-4"
-        value={scheduledDate}
-        onChange={(e) => setScheduledDate(e.target.value)}
-      />
-
-      {/* Select Exercise */}
-      <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">
-        Add Exercises:
-      </h3>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-gray-700 font-medium">Name:</label>
-          <input
-            type="text"
-            list="exercise-list"
-            className="w-full p-2 border rounded-md mb-2"
-            value={newExercise.name}
-            onChange={(e) =>
-              setNewExercise({ ...newExercise, name: e.target.value })
-            }
-          />
-          <datalist id="exercise-list">
-            {allExercises.map((exercise) => (
-              <option key={exercise.id} value={exercise.name} />
-            ))}
-          </datalist>
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-medium">Category:</label>
-          <select
-            className="w-full p-2 border rounded-md mb-2"
-            value={newExercise.category}
-            onChange={(e) =>
-              setNewExercise({
-                ...newExercise,
-                category: e.target.value,
-              })
-            }
-          >
-            <option value="">-- Select Category --</option>
-            <option value="Strength">Strength</option>
-            <option value="Cardio">Cardio</option>
-          </select>
-        </div>
-
-        {/* Conditionally Render Inputs */}
-        {newExercise.category === "Strength" && (
-          <>
-            <div>
-              <label className="block text-gray-700 font-medium">Sets:</label>
-              <input
-                type="number"
-                className="w-full p-2 border rounded-md mb-2"
-                value={newExercise.sets}
-                onChange={(e) =>
-                  setNewExercise({
-                    ...newExercise,
-                    sets: Number(e.target.value),
-                  })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium">Reps:</label>
-              <input
-                type="number"
-                className="w-full p-2 border rounded-md mb-2"
-                value={newExercise.reps}
-                onChange={(e) =>
-                  setNewExercise({
-                    ...newExercise,
-                    reps: Number(e.target.value),
-                  })
-                }
-              />
-            </div>
-          </>
-        )}
-
-        {newExercise.category === "Cardio" && (
-          <>
-            <div>
-              <label className="block text-gray-700 font-medium">
-                Time (seconds):
-              </label>
-              <input
-                type="number"
-                className="w-full p-2 border rounded-md mb-2"
-                value={newExercise.timeInSeconds}
-                onChange={(e) => {
-                  setNewExercise({
-                    ...newExercise,
-                    timeInSeconds: Number(e.target.value),
-                  });
-                }}
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium">
-                Distance (meters):
-              </label>
-              <input
-                type="number"
-                className="w-full p-2 border rounded-md mb-2"
-                value={newExercise.distanceInMeters}
-                onChange={(e) =>
-                  setNewExercise({
-                    ...newExercise,
-                    distanceInMeters: Number(e.target.value),
-                  })
-                }
-              />
-            </div>
-          </>
-        )}
-      </div>
-
-      <button
-        onClick={addExercise}
-        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-      >
-        Add Exercise
+      <button onClick={addWeek} className="bg-blue-500 text-white p-2 rounded">
+        Add Week
       </button>
 
-      {/* Display Added Exercises */}
-      <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">
-        Workout Exercises:
-      </h3>
-      <ul className="list-disc pl-5">
-        {exercises.map((exercise, index) => (
-          <li key={index} className="text-gray-600">
-            {exercise.category === "Strength"
-              ? `${exercise.name} - ${exercise.sets} sets x ${exercise.reps} reps`
-              : `${exercise.name}${
-                  exercise.timeInSeconds
-                    ? ` - ${exercise.timeInSeconds} seconds`
-                    : ""
-                }${exercise.distanceInMeters ? ` - ${exercise.distanceInMeters} meters` : ""}`}
-          </li>
-        ))}
-      </ul>
+      {weeks.map((week, weekIndex) => (
+        <div key={weekIndex} className="border p-4 mt-4">
+          <h3 className="text-lg font-semibold">Week {week.weekNumber}</h3>
+          <button
+            onClick={() => addDay(weekIndex)}
+            className="bg-green-500 text-white p-2 rounded mt-2"
+          >
+            Add Day
+          </button>
+
+          {week.days.map((day, dayIndex) => (
+            <div key={dayIndex} className="border p-2 mt-2">
+              <h4 className="text-md font-semibold">Day {day.dayNumber}</h4>
+              <ExerciseForm
+                weekIndex={weekIndex}
+                dayIndex={dayIndex}
+                addExerciseToDay={addExerciseToDay}
+                allExercises={allExercises}
+              />
+
+              <ul className="list-disc pl-5">
+                {day.exercises.map((exercise, exIndex) => (
+                  <li key={exIndex} className="text-gray-600">
+                    {exercise.name} -{" "}
+                    {exercise.sets
+                      ? `${exercise.sets} sets x ${exercise.reps} reps`
+                      : `${exercise.distance}m, ${exercise.calories} cal`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ))}
 
       <button
-        onClick={submitWorkout}
+        onClick={submitWorkoutProgram}
         className="w-full bg-green-600 text-white py-2 rounded-md mt-4 hover:bg-green-700 transition"
       >
-        Create Workout
+        Save Program
       </button>
     </div>
   );
 };
 
-export default CreateWorkout;
+const ExerciseForm = ({
+  weekIndex,
+  dayIndex,
+  addExerciseToDay,
+  allExercises,
+}) => {
+  const [exercise, setExercise] = useState({
+    name: "",
+    category: "",
+    sets: "",
+    reps: "",
+    distance: "",
+    calories: "",
+  });
+
+  const handleExerciseChange = (e) => {
+    const { name, value } = e.target;
+    const foundExercise = allExercises.find((ex) => ex.name === value);
+    if (name === "name" && foundExercise) {
+      setExercise({
+        ...foundExercise,
+        sets: "",
+        reps: "",
+        distance: "",
+        calories: "",
+      });
+    } else {
+      setExercise((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  return (
+    <div className="mt-4">
+      <input
+        type="text"
+        list="exercise-list"
+        className="w-full p-2 border rounded-md mb-2"
+        placeholder="Exercise Name"
+        name="name"
+        value={exercise.name}
+        onChange={handleExerciseChange}
+      />
+      <datalist id="exercise-list">
+        {allExercises.map((ex) => (
+          <option key={ex.id} value={ex.name} />
+        ))}
+      </datalist>
+      <select
+        className="w-full p-2 border rounded-md mb-2"
+        name="category"
+        value={exercise.category}
+        onChange={(e) => setExercise({ ...exercise, category: e.target.value })}
+      >
+        <option value="">-- Select Category --</option>
+        <option value="Strength">Strength</option>
+        <option value="Cardio">Cardio</option>
+      </select>
+      {exercise.category === "Strength" ? (
+        <>
+          <input
+            type="number"
+            className="w-full p-2 border rounded-md mb-2"
+            placeholder="Sets"
+            name="sets"
+            onChange={handleExerciseChange}
+          />
+          <input
+            type="number"
+            className="w-full p-2 border rounded-md mb-2"
+            placeholder="Reps"
+            name="reps"
+            onChange={handleExerciseChange}
+          />
+        </>
+      ) : exercise.category === "Cardio" ? (
+        <>
+          <input
+            type="number"
+            className="w-full p-2 border rounded-md mb-2"
+            placeholder="Distance (m)"
+            name="distance"
+            onChange={handleExerciseChange}
+          />
+          <input
+            type="number"
+            className="w-full p-2 border rounded-md mb-2"
+            placeholder="Calories"
+            name="calories"
+            onChange={handleExerciseChange}
+          />
+        </>
+      ) : null}
+      <button
+        onClick={() => {
+          console.log("Adding exercise:", exercise); // Debug before adding
+          addExerciseToDay(weekIndex, dayIndex, exercise);
+        }}
+        className="bg-blue-600 text-white p-2 rounded"
+      >
+        Add Exercise
+      </button>
+    </div>
+  );
+};
+
+export default CreateWorkoutProgram;

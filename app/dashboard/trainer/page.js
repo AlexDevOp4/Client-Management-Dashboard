@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import API from "../../utils/api";
 import withAuth from "../../components/withAuth";
-import Link from "next/link";
 
 const TrainerDashboard = () => {
   const router = useRouter();
@@ -40,6 +39,7 @@ const TrainerDashboard = () => {
   }, [router]);
 
   const formatDate = (isoString) => {
+    if (!isoString) return "No Workouts Yet";
     return new Date(isoString).toISOString().split("T")[0];
   };
 
@@ -145,7 +145,7 @@ const TrainerDashboard = () => {
                     {client.name}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {formatDate(client.lastWorkoutDate) || "No Workouts Yet"}
+                    {formatDate(client.lastWorkoutDate)}
                   </td>
                   <td className="border border-gray-300 px-4 py-2 flex justify-center gap-2">
                     <button

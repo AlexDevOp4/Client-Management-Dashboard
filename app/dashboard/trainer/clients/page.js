@@ -26,6 +26,7 @@ const TrainerClients = () => {
     const fetchClients = async () => {
       try {
         const response = await API.get(`/trainer/clients`);
+        console.log(response.data);
         setClients(response.data);
       } catch (error) {
         console.error("Error fetching clients", error);
@@ -38,13 +39,14 @@ const TrainerClients = () => {
     fetchClients();
   }, []);
 
+
   /** Handle Navigation **/
   const goToClientProfile = (clientId) => {
     router.push(`/dashboard/trainer/clients/${clientId}`);
   };
 
   const createWorkoutForClient = (clientId) => {
-    router.push(`/dashboard/trainer/workouts/create`);
+    router.push(`/dashboard/trainer/clients/${clientId}/create`);
   };
 
   /** Handle Adding New Client **/
@@ -108,7 +110,7 @@ const TrainerClients = () => {
                     {client.name}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {client.email}
+                    {client.user.email}
                   </td>
                   <td className="border border-gray-300 px-4 py-2 flex justify-center gap-2">
                     <button
