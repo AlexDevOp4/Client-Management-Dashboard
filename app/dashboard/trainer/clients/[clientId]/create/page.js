@@ -98,7 +98,9 @@ const CreateWorkoutProgram = () => {
             name: ex.name,
             category: ex.category,
             sets: ex.sets ? parseInt(ex.sets) : null,
-            reps: ex.reps ? parseInt(ex.reps) : null,
+            reps: Array.isArray(ex.reps)
+              ? ex.reps.map((rep) => parseInt(rep))
+              : [], // Ensure it's an array of numbers
             distance: ex.distance ? parseFloat(ex.distance) : null,
             calories: ex.calories ? parseFloat(ex.calories) : null,
           })),
@@ -197,17 +199,36 @@ const ExerciseForm = ({
   const handleExerciseChange = (e) => {
     const { name, value } = e.target;
     const foundExercise = allExercises.find((ex) => ex.name === value);
+
     if (name === "name" && foundExercise) {
       setExercise({
         ...foundExercise,
         sets: "",
-        reps: "",
+        reps: [],
         distance: "",
         calories: "",
       });
+    } else if (name === "reps") {
+      // Convert the comma-separated input into an array of numbers
+      setExercise((prev) => ({
+        ...prev,
+        reps: value.split(",").map((rep) => parseInt(rep.trim(), 10) || 0),
+      }));
     } else {
       setExercise((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  // Refresh inputs after adding exercises
+  const refreshInputs = () => {
+    setExercise({
+      name: "",
+      category: "",
+      sets: "",
+      reps: "",
+      distance: "",
+      calories: "",
+    });
   };
 
   return (
@@ -246,10 +267,11 @@ const ExerciseForm = ({
             onChange={handleExerciseChange}
           />
           <input
-            type="number"
+            type="text" // Change to text to allow comma-separated values
             className="w-full p-2 border rounded-md mb-2"
-            placeholder="Reps"
+            placeholder="Reps (comma separated)"
             name="reps"
+            value={exercise.reps.join(", ")} // Display as comma-separated
             onChange={handleExerciseChange}
           />
         </>
@@ -275,6 +297,7 @@ const ExerciseForm = ({
         onClick={() => {
           console.log("Adding exercise:", exercise); // Debug before adding
           addExerciseToDay(weekIndex, dayIndex, exercise);
+          refreshInputs();
         }}
         className="bg-blue-600 text-white p-2 rounded"
       >
