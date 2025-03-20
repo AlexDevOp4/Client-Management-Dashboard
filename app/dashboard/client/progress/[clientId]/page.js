@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useParams } from "next/navigation";
 import API from "../../../../utils/api";
 import {
@@ -19,15 +19,19 @@ const ClientProgress = () => {
   const [selectedExercise, setSelectedExercise] = useState("");
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [clientData, setClientData] = useState(null);
 
   useEffect(() => {
     if (!clientId) return;
 
     const fetchProgress = async () => {
       try {
-        const response = await API.get(`/clients/${clientId}/progress`);
-        setWorkoutsCompleted(response.data.completedWorkouts);
-        setExercises(response.data.exercises);
+        const userData = await API.get("/auth/me");
+        const clientsId = userData.data.user.id;
+        setClientData(clientsId);
+        const response = await API.get(`/client/${clientsId}/progress`);
+        const exercise = response.data.map((ex) => ex.exercise);
+        setExercises(exercise);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching progress", error);
@@ -39,21 +43,47 @@ const ClientProgress = () => {
   }, [clientId]);
 
   useEffect(() => {
-    if (!selectedExercise) return;
+    if (!clientData) return;
+    const fetchClientsPrograms = async () => {
+      //http://localhost:8080/api/client/programs/d37e0c35-c83a-4920-b6d6-5a0b191f15c1
+      try {
+        const response = await API.get(`/client/programs/${clientData}`);
+        const completedPrograms = response.data.filter(
+          (program) => program.status === "completed"
+        );
+        setWorkoutsCompleted(completedPrograms.length);
+      } catch (error) {
+        console.error("Error fetching clients programs", error);
+      }
+    };
 
+    fetchClientsPrograms();
+  }, [clientData]);
+
+  useEffect(() => {
+    if (!selectedExercise) return;
     const fetchExerciseProgress = async () => {
       try {
         const response = await API.get(
-          `/clients/${clientId}/exercises/${selectedExercise}/progress`
+          `/client/exerciseProgress/${clientData}/exercise/${selectedExercise}`
         );
-        setProgressData(response.data);
+
+        const progressDataResponse = response.data.progress.flatMap((log) =>
+          log.weightUsed.map((weight, index) => ({
+            date: new Date(log.logDate).toISOString().split("T")[0], // Format date
+            weight, // Single weight per set
+            reps: log.repsCompleted[index], // Match reps for that set
+          }))
+        );
+
+        setProgressData(progressDataResponse);
       } catch (error) {
         console.error("Error fetching exercise progress", error);
       }
     };
 
     fetchExerciseProgress();
-  }, [clientId, selectedExercise]);
+  }, [clientId, selectedExercise, clientData]);
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg">
@@ -112,6 +142,12 @@ const ClientProgress = () => {
                     type="monotone"
                     dataKey="weight"
                     stroke="#34D399"
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="reps"
+                    stroke="#F97316"
                     strokeWidth={2}
                   />
                 </LineChart>

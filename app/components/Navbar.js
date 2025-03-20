@@ -15,17 +15,28 @@ import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useRouter, usePathname } from "next/navigation";
 import { useCookies } from "react-cookie";
 import Cookies from "js-cookie";
-import { Image } from "next/image";
 
 const Navbar = () => {
   const [cookie, setCookie] = useCookies(["token", "role"]);
   const [userRole, setUserRole] = useState(null);
+  const [clientId, setClientId] = useState(null);
   const hiddenRoutes = ["/", "/auth/register", "/auth/login"];
 
   const router = useRouter();
   const pathname = usePathname();
 
+  const getUserData = async () => {
+    try {
+      const userData = await API.get("/auth/me");
+      const clientData = await API.get(`/user/${userData.data.user.id}`);
+      setClientId(clientData.data.clientProfile.id);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
   useEffect(() => {
+    getUserData();
     setUserRole(cookie.role || null);
   }, [cookie]);
 
@@ -88,7 +99,7 @@ const Navbar = () => {
                 {userRole === "client" && (
                   <>
                     <NavLink
-                      href="/dashboard/client/progress"
+                      href={`/dashboard/client/progress/${clientId}`}
                       label="Progress"
                       active={pathname.includes("/dashboard/client/progress")}
                     />

@@ -15,6 +15,7 @@ const ProgramEdit = () => {
   const [completedReps, setCompletedReps] = useState({});
 
   useEffect(() => {
+    console.log(window.location.href.split("/").pop());
     if (!programId) return;
 
     const fetchProgramDetails = async () => {
@@ -75,12 +76,48 @@ const ProgramEdit = () => {
     });
   };
 
+  const logWorkout = async (logs) => {
+    try {
+      // Map each log to an API request
+      const requests = logs.map(
+        (log) => API.post("/workouts/log", log) // Adjust API endpoint as needed
+      );
+
+      // Execute all requests concurrently
+      const responses = await Promise.all(requests);
+
+      console.log("All logs posted successfully!", responses);
+      return responses;
+    } catch (error) {
+      console.error("Error posting workout logs:", error);
+    }
+  };
+
   const saveChanges = async () => {
     try {
-      await API.put(`/workouts/program/${programId}`, program);
+      // await API.put(`/workouts/program/${programId}`, program);
       alert("Program updated successfully!");
       // router.push(`/dashboard/trainer/clients/${program.clientId}`);
-      console.log(program, "program");
+
+      const logData = program.weeks.flatMap((week) =>
+        week.days.flatMap((day) =>
+          day.workout.workoutExercises.flatMap((exercise) => ({
+            workoutId: exercise.workoutId,
+            exerciseId: exercise.exerciseId,
+            clientId: program.clientId,
+            setsCompleted: exercise.sets,
+            repsCompleted: exercise.reps,
+            weightUsed: exercise.weight,
+            notes: "",
+            timeInSeconds: exercise.timeInSeconds || 0,
+            distanceInMeters: exercise.distanceInMeters || 0,
+            programId: window.location.href.split("/").pop(),
+            completed: exercise.sets === exercise.reps.length,
+          }))
+        )
+      );
+
+      logWorkout(logData);
     } catch (error) {
       console.error("Error updating program", error);
       alert("Error updating program");
@@ -124,7 +161,9 @@ const ProgramEdit = () => {
                   </thead>
                   <tbody>
                     {day.workout.workoutExercises.map((exercise, exIndex) => (
-                      <React.Fragment key={`exercise-${weekIndex}-${dayIndex}-${exIndex}`}>
+                      <React.Fragment
+                        key={`exercise-${weekIndex}-${dayIndex}-${exIndex}`}
+                      >
                         {[...Array(exercise.sets)].map((_, setIndex) => {
                           const key = `${weekIndex}-${dayIndex}-${exIndex}-${setIndex}`;
                           return (
