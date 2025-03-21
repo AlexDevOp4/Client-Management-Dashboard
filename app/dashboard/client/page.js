@@ -25,7 +25,7 @@ const ClientDashboard = () => {
   const navigateToProgram = (programId) => {
     router.push(`/dashboard/client/programs/edit/${programId}`);
   };
-
+  
 
   const fetchProfile = async () => {
     try {
