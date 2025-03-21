@@ -27,7 +27,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const getUserData = async () => {
-     if (!window.location.pathname.includes('dashboard')) return;
+     if (window.location.pathname.includes('dashboard') === false) return;
      
       try {
         const userData = await API.get("/auth/me");
@@ -41,6 +41,7 @@ const Navbar = () => {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        return null;
       }
     };
 
