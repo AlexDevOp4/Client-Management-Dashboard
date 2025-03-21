@@ -25,17 +25,25 @@ const Navbar = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const getUserData = async () => {
-    try {
-      const userData = await API.get("/auth/me");
-      const clientData = await API.get(`/user/${userData.data.user.id}`);
-      setClientId(clientData.data.clientProfile.id);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
-
   useEffect(() => {
+    const getUserData = async () => {
+     if (!window.location.pathname.includes('dashboard')) return;
+     
+      try {
+        const userData = await API.get("/auth/me");
+        let usersId;
+        if (cookie.role === "trainer") {
+          usersId = userData.data.user.id;
+        } else {
+          usersId = userData.data.user.clientId;
+          const clientData = await API.get(`/user/${usersId}`);
+          setClientId(clientData.data.clientProfile.id);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
     getUserData();
     setUserRole(cookie.role || null);
   }, [cookie]);
@@ -51,29 +59,31 @@ const Navbar = () => {
     }
   };
 
-  if (hiddenRoutes.includes(pathname)) return null; // Hide navbar on auth pages
+  if (hiddenRoutes.includes(pathname)) return null;
 
   return (
-    <Disclosure as="nav" className="bg-white shadow">
+    <Disclosure
+      as="nav"
+      className="bg-gradient-to-b from-gray-900 to-black shadow-lg border-b border-indigo-800"
+    >
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 justify-between items-center">
-              {/* Mobile Menu Button */}
+            <div className="flex h-16 justify-between items-center text-indigo-100">
               <div className="sm:hidden">
-                <Disclosure.Button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:ring-2 focus:ring-indigo-500">
+                <Disclosure.Button className="inline-flex items-center justify-center p-2 rounded-md text-indigo-400 hover:text-indigo-200 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
                   {open ? (
-                    <XMarkIcon className="block h-6 w-6" />
+                    <XMarkIcon className="h-6 w-6" />
                   ) : (
-                    <Bars3Icon className="block h-6 w-6" />
+                    <Bars3Icon className="h-6 w-6" />
                   )}
                 </Disclosure.Button>
               </div>
 
-              {/* Logo */}
-              <div className="flex-shrink-0"></div>
+              <div className="flex-shrink-0 text-xl font-bold tracking-widest text-indigo-500">
+                ASHTIANY FIT
+              </div>
 
-              {/* Desktop Menu */}
               <div className="hidden sm:flex sm:space-x-8">
                 <NavLink
                   href={`/dashboard/${userRole}`}
@@ -103,36 +113,25 @@ const Navbar = () => {
                       label="Progress"
                       active={pathname.includes("/dashboard/client/progress")}
                     />
-                    <NavLink
-                      href="/dashboard/client/workouts"
-                      label="My Workouts"
-                      active={pathname.includes("/dashboard/client/workouts")}
-                    />
                   </>
                 )}
               </div>
 
-              {/* Notifications & Profile Menu */}
               <div className="flex items-center">
                 <Menu as="div" className="relative ml-3">
                   <div>
-                    <MenuButton className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                      <span className="absolute -inset-1.5" />
+                    <MenuButton className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                       <span className="sr-only">Open user menu</span>
-                      <BellIcon className="h-6 w-6" />
+                      <BellIcon className="h-6 w-6 text-indigo-400 hover:text-white" />
                     </MenuButton>
                   </div>
 
-                  <MenuItems
-                    className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 transition focus:outline-none 
-          data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 
-          data-[enter]:duration-200 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-                  >
+                  <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-gray-800 text-white shadow-lg ring-1 ring-indigo-800">
                     <MenuItem>
                       {({ active }) => (
                         <a
                           href="/profile"
-                          className={`block px-4 py-2 text-sm text-gray-700 ${active ? "bg-gray-100" : ""}`}
+                          className={`block px-4 py-2 text-sm ${active ? "bg-indigo-700" : ""}`}
                         >
                           Your Profile
                         </a>
@@ -142,7 +141,7 @@ const Navbar = () => {
                       {({ active }) => (
                         <a
                           href="/settings"
-                          className={`block px-4 py-2 text-sm text-gray-700 ${active ? "bg-gray-100" : ""}`}
+                          className={`block px-4 py-2 text-sm ${active ? "bg-indigo-700" : ""}`}
                         >
                           Settings
                         </a>
@@ -152,7 +151,7 @@ const Navbar = () => {
                       {({ active }) => (
                         <button
                           onClick={handleLogout}
-                          className={`block w-full text-left px-4 py-2 text-sm text-gray-700 ${active ? "bg-gray-100" : ""}`}
+                          className={`block w-full text-left px-4 py-2 text-sm ${active ? "bg-indigo-700" : ""}`}
                         >
                           Sign out
                         </button>
@@ -164,8 +163,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Menu */}
-          <DisclosurePanel className="sm:hidden">
+          <DisclosurePanel className="sm:hidden bg-gray-900 border-t border-indigo-800">
             <div className="space-y-1 px-2 pb-3 pt-2">
               <DisclosureButton
                 href={`/dashboard/${userRole}`}
@@ -191,14 +189,14 @@ const Navbar = () => {
               {userRole === "client" && (
                 <>
                   <DisclosureButton
-                    href="/client/progress"
+                    href={`/dashboard/client/progress/${clientId}`}
                     label="Progress"
-                    active={pathname.includes("/client/progress")}
+                    active={pathname.includes("/dashboard/client/progress")}
                   />
                   <DisclosureButton
-                    href="/client/workouts"
+                    href="/dashboard/client/workouts"
                     label="My Workouts"
-                    active={pathname.includes("/client/workouts")}
+                    active={pathname.includes("/dashboard/client/workouts")}
                   />
                 </>
               )}
@@ -211,21 +209,19 @@ const Navbar = () => {
   );
 };
 
-/**  Reusable Desktop Nav Link **/
 const NavLink = ({ href, label, active }) => (
   <a
     href={href}
-    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${
+    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-semibold tracking-wide uppercase ${
       active
-        ? "border-indigo-500 text-gray-900"
-        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+        ? "border-indigo-500 text-indigo-300"
+        : "border-transparent text-indigo-400 hover:border-indigo-300 hover:text-white"
     }`}
   >
     {label}
   </a>
 );
 
-/**  Reusable Mobile Nav Button **/
 const DisclosureButton = ({ href, label, onClick, active }) => (
   <Disclosure.Button
     as="a"
@@ -233,8 +229,8 @@ const DisclosureButton = ({ href, label, onClick, active }) => (
     onClick={onClick}
     className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${
       active
-        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-        : "border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
+        ? "border-indigo-500 bg-gray-800 text-white"
+        : "border-transparent text-indigo-400 hover:border-indigo-600 hover:bg-gray-800 hover:text-white"
     }`}
   >
     {label}

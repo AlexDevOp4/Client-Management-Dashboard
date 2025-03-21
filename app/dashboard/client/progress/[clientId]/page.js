@@ -86,7 +86,7 @@ const ClientProgress = () => {
   }, [clientId, selectedExercise, clientData]);
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg">
+    <div className="max-w-5xl mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg mt-4">
       <h2 className="text-3xl font-bold text-gray-100 mb-6">
         Progress Overview
       </h2>

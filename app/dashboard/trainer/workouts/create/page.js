@@ -19,65 +19,39 @@ const CreateWorkout = () => {
     distanceInMeters: 0,
   });
 
-  /** Fetch Trainer's Clients **/
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const response = await API.get("/auth/me");
-        setTrainerId(response.data.user.id);
-      } catch (error) {
-        console.error("Error fetching clients", error);
-      }
+      const res = await API.get("/auth/me");
+      setTrainerId(res.data.user.id);
     };
-
     const fetchClients = async () => {
-      try {
-        const response = await API.get(`/trainer/clients`);
-        setClients(response.data);
-      } catch (error) {
-        console.error("Error fetching clients", error);
-      }
+      const res = await API.get(`/trainer/clients`);
+      setClients(res.data);
     };
 
     fetchUser();
     fetchClients();
   }, []);
 
-  /** Fetch Available Exercises **/
   useEffect(() => {
     const fetchExercises = async () => {
-      try {
-        const response = await API.get(`workouts/exercises`);
-        setAllExercises(response.data);
-      } catch (error) {
-        console.error("Error fetching exercises", error);
-      }
+      const res = await API.get(`workouts/exercises`);
+      setAllExercises(res.data);
     };
     fetchExercises();
   }, []);
 
-  /** Add Exercise to Workout **/
   const addExercise = () => {
-    if (!newExercise.name || !newExercise.category) {
-      alert("Exercise name and category are required.");
-      return;
-    }
+    const { name, category, sets, reps, timeInSeconds, distanceInMeters } =
+      newExercise;
 
-    if (
-      newExercise.category === "Strength" &&
-      (!newExercise.sets || !newExercise.reps)
-    ) {
-      alert("Sets and reps are required for Strength exercises.");
-      return;
-    }
+    if (!name || !category) return alert("Name and category required.");
 
-    if (
-      newExercise.category === "Cardio" &&
-      (!newExercise.timeInSeconds || !newExercise.distanceInMeters)
-    ) {
-      alert("Time and distance are required for Cardio exercises.");
-      return;
-    }
+    if (category === "Strength" && (!sets || !reps))
+      return alert("Sets and reps required for strength.");
+
+    if (category === "Cardio" && (!timeInSeconds || !distanceInMeters))
+      return alert("Time and distance required for cardio.");
 
     setExercises([...exercises, newExercise]);
     setNewExercise({
@@ -90,10 +64,9 @@ const CreateWorkout = () => {
     });
   };
 
-  /** Submit Workout **/
   const submitWorkout = async () => {
     if (!selectedClient || !title || !scheduledDate || exercises.length === 0) {
-      alert("Please fill in all fields before submitting.");
+      alert("Fill all fields before submitting.");
       return;
     }
 
@@ -105,29 +78,28 @@ const CreateWorkout = () => {
         scheduledDate,
         exercises,
       });
-      alert("Workout Created Successfully!");
+
+      alert("Workout created!");
       setTitle("");
       setScheduledDate("");
       setExercises([]);
       setSelectedClient("");
-    } catch (error) {
-      console.error("Error creating workout", error);
+    } catch (err) {
+      console.error("Error creating workout", err);
       alert("Error creating workout");
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+    <div className="max-w-4xl mx-auto mt-10 p-6 bg-gray-900 text-white rounded-2xl shadow-2xl">
+      <h2 className="text-3xl font-bold text-indigo-400 mb-6 border-b border-gray-700 pb-2">
         Create Workout
       </h2>
 
       {/* Select Client */}
-      <label className="block text-gray-700 font-medium mb-2">
-        Select Client:
-      </label>
+      <label className="block text-sm text-gray-300 mb-1">Client</label>
       <select
-        className="w-full p-2 border rounded-md mb-4"
+        className="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white mb-4"
         value={selectedClient}
         onChange={(e) => setSelectedClient(e.target.value)}
       >
@@ -139,38 +111,34 @@ const CreateWorkout = () => {
         ))}
       </select>
 
-      {/* Workout Details */}
-      <label className="block text-gray-700 font-medium mb-2">
-        Workout Title:
-      </label>
+      {/* Title */}
+      <label className="block text-sm text-gray-300 mb-1">Workout Title</label>
       <input
         type="text"
-        className="w-full p-2 border rounded-md mb-4"
+        className="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white mb-4"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
 
-      <label className="block text-gray-700 font-medium mb-2">
-        Scheduled Date:
-      </label>
+      {/* Date */}
+      <label className="block text-sm text-gray-300 mb-1">Scheduled Date</label>
       <input
         type="date"
-        className="w-full p-2 border rounded-md mb-4"
+        className="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white mb-6"
         value={scheduledDate}
         onChange={(e) => setScheduledDate(e.target.value)}
       />
 
-      {/* Select Exercise */}
-      <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">
-        Add Exercises:
+      {/* Add Exercise */}
+      <h3 className="text-lg font-semibold text-indigo-300 mb-4">
+        Add Exercise
       </h3>
-
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-gray-700 font-medium">Name:</label>
+          <label className="block text-sm text-gray-300 mb-1">Name</label>
           <input
             type="text"
-            className="w-full p-2 border rounded-md mb-2"
+            className="w-full p-2 bg-gray-800 border border-gray-600 text-white rounded"
             value={newExercise.name}
             onChange={(e) =>
               setNewExercise({ ...newExercise, name: e.target.value })
@@ -179,9 +147,9 @@ const CreateWorkout = () => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium">Category:</label>
+          <label className="block text-sm text-gray-300 mb-1">Category</label>
           <select
-            className="w-full p-2 border rounded-md mb-2"
+            className="w-full p-2 bg-gray-800 border border-gray-600 text-white rounded"
             value={newExercise.category}
             onChange={(e) =>
               setNewExercise({
@@ -200,14 +168,13 @@ const CreateWorkout = () => {
           </select>
         </div>
 
-        {/* Conditionally Render Inputs */}
         {newExercise.category === "Strength" && (
           <>
             <div>
-              <label className="block text-gray-700 font-medium">Sets:</label>
+              <label className="block text-sm text-gray-300 mb-1">Sets</label>
               <input
                 type="number"
-                className="w-full p-2 border rounded-md mb-2"
+                className="w-full p-2 bg-gray-800 border border-gray-600 text-white rounded"
                 value={newExercise.sets}
                 onChange={(e) =>
                   setNewExercise({
@@ -218,10 +185,10 @@ const CreateWorkout = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium">Reps:</label>
+              <label className="block text-sm text-gray-300 mb-1">Reps</label>
               <input
                 type="number"
-                className="w-full p-2 border rounded-md mb-2"
+                className="w-full p-2 bg-gray-800 border border-gray-600 text-white rounded"
                 value={newExercise.reps}
                 onChange={(e) =>
                   setNewExercise({
@@ -237,12 +204,12 @@ const CreateWorkout = () => {
         {newExercise.category === "Cardio" && (
           <>
             <div>
-              <label className="block text-gray-700 font-medium">
-                Time (seconds):
+              <label className="block text-sm text-gray-300 mb-1">
+                Time (seconds)
               </label>
               <input
                 type="number"
-                className="w-full p-2 border rounded-md mb-2"
+                className="w-full p-2 bg-gray-800 border border-gray-600 text-white rounded"
                 value={newExercise.timeInSeconds}
                 onChange={(e) =>
                   setNewExercise({
@@ -253,12 +220,12 @@ const CreateWorkout = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium">
-                Distance (meters):
+              <label className="block text-sm text-gray-300 mb-1">
+                Distance (meters)
               </label>
               <input
                 type="number"
-                className="w-full p-2 border rounded-md mb-2"
+                className="w-full p-2 bg-gray-800 border border-gray-600 text-white rounded"
                 value={newExercise.distanceInMeters}
                 onChange={(e) =>
                   setNewExercise({
@@ -274,9 +241,17 @@ const CreateWorkout = () => {
 
       <button
         onClick={addExercise}
-        className="w-full bg-blue-600 text-white py-2 rounded-md mt-4"
+        className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md font-semibold transition"
       >
-        Add Exercise
+        + Add Exercise
+      </button>
+
+      {/* Submit */}
+      <button
+        onClick={submitWorkout}
+        className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold tracking-wide transition"
+      >
+        Create Workout
       </button>
     </div>
   );

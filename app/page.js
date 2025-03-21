@@ -18,12 +18,7 @@ export default function Login() {
 
     try {
       const { data } = await API.post("/auth/login", { email, password });
-      console.log("Login successful", data);
-
-      // setCookie("token", data.token);
       setCookie("role", data.user.role);
-
-      // Redirect based on role
       router.push(`/dashboard/${data.user.role}`);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
@@ -31,36 +26,53 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 mb-3 border rounded"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 mb-3 border rounded"
-          />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl text-white">
+        <h2 className="text-3xl font-bold text-center mb-6 text-indigo-400 tracking-wide">
+          Welcome Back
+        </h2>
+        {error && (
+          <p className="text-red-500 text-center font-medium mb-4">{error}</p>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded"
+            className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 transition rounded-md font-semibold text-white shadow-sm"
           >
-            Login
+            Sign In
           </button>
         </form>
-        <p className="text-center mt-4">
-          Don&apos;t have an account?{" "}
-          <Link className="text-blue-500" href="/auth/register">
-            Register
+
+        <p className="mt-6 text-sm text-center text-gray-400">
+          Don't have an account?{" "}
+          <Link
+            href="/auth/register"
+            className="text-indigo-400 hover:underline"
+          >
+            Register here
           </Link>
         </p>
       </div>

@@ -2,17 +2,18 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import API from "../../utils/api";
-import withAuth from "../../components/withAuth";
 import { useCookies } from "react-cookie";
 import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 
 const ClientDashboard = () => {
   const [programs, setPrograms] = useState([]);
   const [upcomingWorkouts, setUpcomingWorkouts] = useState([]);
+  const [currentProgram, setCurrentProgram] = useState([]);
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [progressData, setProgressData] = useState([]);
   const [clientData, setClientData] = useState(null);
-  const [cookies, setCookie, removeToken] = useCookies(["token", "role"]);
+  const [cookies] = useCookies(["token", "role"]);
+  const [usersData, setUsersData] = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
@@ -25,14 +26,10 @@ const ClientDashboard = () => {
   const navigateToProgram = (programId) => {
     router.push(`/dashboard/client/programs/edit/${programId}`);
   };
-  
 
   const fetchProfile = async () => {
     try {
-      const response = await API.get("/auth/me", {
-        withCredentials: true,
-      });
-      console.log(response.data);
+      const response = await API.get("/auth/me", { withCredentials: true });
       const user = await API.get(`/user/${response.data.user.id}`);
       setClientData(user.data);
     } catch (error) {
@@ -41,46 +38,33 @@ const ClientDashboard = () => {
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await API.get("/auth/me", { withCredentials: true });
-        console.log(response.data);
-        const user = await API.get(`/user/${response.data.user.id}`);
-        setClientData(user.data);
-      } catch (error) {
-        console.error("Error fetching client profile", error);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  useEffect(() => {
     fetchProfile();
 
     const fetchClientData = async () => {
       try {
-        const response = await API.get("/auth/me", {
-          withCredentials: true,
-        });
+        const response = await API.get("/auth/me", { withCredentials: true });
         const clientId = response.data.user.id;
-        const programsRes = await API.get(`/client/programs/${clientId}`);
-        const workoutsRes = await API.get("/client/upcoming-workouts");
-        const historyRes = await API.get(`/client/history/${clientId}`);
-        const progressRes = await API.get("/client/progress");
-        console.log(programsRes.data, "programs");
+        const user = await API.get(`/user/${response.data.user.id}`);
+        console.log(user.data.clientProfile);
+        setUsersData(user.data.clientProfile);
+        const [programsRes, workoutsRes, historyRes, progressRes] =
+          await Promise.all([
+            API.get(`/client/programs/${clientId}`),
+            API.get("/client/upcoming-workouts"),
+            API.get(`/client/history/${clientId}`),
+            API.get("/client/progress"),
+          ]);
 
+        const currentProgramData = programsRes.data.filter(
+          (program) => program.status === "in-progress"
+        );
+        setCurrentProgram(currentProgramData);
         setPrograms(programsRes.data);
         setUpcomingWorkouts(workoutsRes.data);
         setWorkoutHistory(historyRes.data);
-        console.log(historyRes.data, "workoutHistory");
         setProgressData(progressRes.data);
       } catch (error) {
-        console.log(
-          "Error fetching client dashboard data",
-          error.response.data.error
-        );
-        setError(error.response.data.error);
+        setError(error.response?.data?.error || "Unknown error");
       }
     };
 
@@ -88,54 +72,58 @@ const ClientDashboard = () => {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-8">
-      <h2 className="text-2xl font-semibold mb-4 text-center">
-        Client Dashboard
+    <div className="max-w-7xl mx-auto p-6 bg-gradient-to-b from-gray-900 to-black text-gray-200 shadow-xl rounded-lg mt-8 font-mono">
+      <h2 className="text-3xl font-bold mb-6 text-center tracking-widest text-indigo-400 border-b border-gray-700 pb-2">
+        {usersData.name}&apos;s Dashboard
       </h2>
 
       {error ? (
         <p className="text-red-500 font-bold text-center text-2xl">{error}</p>
       ) : (
         <div>
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">
-              Your Workout Programs
+          <div className="mb-10">
+            <h3 className="text-xl font-semibold mb-4 text-indigo-300 border-b border-gray-800 pb-1">
+              Active Programs
             </h3>
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {programs.map((program) => (
                 <div
                   key={program.id}
-                  className={`p-4 rounded-lg cursor-pointer ${
+                  className={`p-4 rounded-lg border hover:scale-105 transition transform duration-300 cursor-pointer shadow-md ${
                     program.status === "completed"
-                      ? "bg-gray-200"
-                      : "bg-blue-100"
+                      ? "bg-gray-800 text-gray-400 border-gray-700"
+                      : "bg-gradient-to-r from-indigo-800 to-indigo-600 border-indigo-400 text-white"
                   }`}
                   onClick={() =>
                     router.push(`/client/programs/${program.id}/edit`)
                   }
                 >
-                  <h4 className="font-semibold">{program.title}</h4>
-                  <p>Status: {program.status}</p>
+                  <h4 className="text-lg font-bold">{program.title}</h4>
+                  <p className="text-sm uppercase tracking-widest mt-2">
+                    Status:{" "}
+                    <span className="font-semibold">{program.status}</span>
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Upcoming Workouts */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Current Program</h3>
-            {programs.length > 0 ? (
-              <ul>
-                {programs.map((workout) => (
+          {/* Current Program */}
+          <div className="mb-10">
+            <h3 className="text-xl font-semibold text-indigo-300 border-b border-gray-800 pb-1 mb-4">
+              Current Program
+            </h3>
+            {currentProgram.length > 0 ? (
+              <ul className="space-y-3">
+                {currentProgram.map((workout) => (
                   <li
                     key={workout.id}
-                    className="border p-2 rounded mb-2 flex justify-between"
+                    className="bg-gray-900 border border-indigo-500 rounded-md p-4 flex items-center justify-between shadow-lg"
                   >
-                    {workout.title}{" "}
+                    <span className="text-lg font-medium">{workout.title}</span>
                     <button
                       onClick={() => navigateToProgram(workout.id)}
-                      className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition"
+                      className="bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-500 transition"
                     >
                       Continue
                     </button>
@@ -143,64 +131,49 @@ const ClientDashboard = () => {
                 ))}
               </ul>
             ) : (
-              <p>No upcoming workouts scheduled.</p>
+              <p className="text-gray-400 italic">
+                No current programs available.
+              </p>
             )}
           </div>
 
           {/* Workout History */}
-          <div className="mb-6">
+          <div>
             <div className="flex items-center space-x-3 mb-2">
-              {" "}
-              <h3
-                onClick={() => toggleCollapse()}
-                className="text-lg font-semibold mb-2"
-              >
-                Program History
+              <h3 className="text-xl font-semibold text-indigo-300 border-b border-gray-800 pb-1">
+                Completed Programs
               </h3>
               <ChevronDoubleRightIcon
-                className={`w-6 h-6 cursor-pointer ${isCollapsed ? "rotate-90" : ""}`}
+                className={`w-6 h-6 cursor-pointer text-gray-300 transition-transform ${
+                  isCollapsed ? "rotate-90" : ""
+                }`}
                 onClick={toggleCollapse}
               />
             </div>
-            {programs.length > 0 ? (
-              <ul className={`${isCollapsed ? "hidden" : ""}`}>
-                {programs.map(
-                  (workout) =>
-                    workout.status === "completed" && (
-                      <li key={workout.id} className="border p-2 rounded mb-2">
-                        {workout.title} - Completed on {workout.completedDate}
-                      </li>
-                    )
-                )}
-              </ul>
-            ) : (
-              <p>No past workouts recorded.</p>
-            )}
 
             {workoutHistory.length > 0 ? (
-              <ul className={`${isCollapsed ? "hidden" : ""}`}>
+              <ul className={`${isCollapsed ? "hidden" : "space-y-3"}`}>
                 {workoutHistory.map((workout) => (
-                  <li key={workout.id} className="border p-2 rounded mb-2">
-                    {workout.title} - Completed on {workout.completedDate}
+                  <li
+                    key={workout.id}
+                    className="bg-gray-800 border border-gray-700 p-3 rounded-md flex justify-between items-center"
+                  >
+                    <span>{workout.title}</span>
+                    <button
+                      onClick={() => navigateToProgram(workout.id)}
+                      className="bg-indigo-500 text-white px-3 py-1 rounded hover:bg-indigo-400 transition"
+                    >
+                      Review
+                    </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p>No past workouts recorded.</p>
+              <p className="text-gray-400 italic">No past workouts recorded.</p>
             )}
-          </div>
-
-          {/* Progress Chart (Placeholder) */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Your Progress</h3>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <p>Progress chart will be here...</p>
-            </div>
           </div>
         </div>
       )}
-
-      {/* Workout Programs */}
     </div>
   );
 };

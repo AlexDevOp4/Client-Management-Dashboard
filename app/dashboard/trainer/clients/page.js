@@ -12,24 +12,22 @@ const TrainerClients = () => {
 
   const router = useRouter();
 
-  /** Fetch Trainer ID and Clients **/
   useEffect(() => {
     const fetchTrainer = async () => {
       try {
-        const response = await API.get("/auth/me");
-        setTrainerId(response.data.user.id);
-      } catch (error) {
-        console.error("Error fetching trainer", error);
+        const res = await API.get("/auth/me");
+        setTrainerId(res.data.user.id);
+      } catch (err) {
+        console.error("Error fetching trainer", err);
       }
     };
 
     const fetchClients = async () => {
       try {
-        const response = await API.get(`/trainer/clients`);
-        console.log(response.data);
-        setClients(response.data);
-      } catch (error) {
-        console.error("Error fetching clients", error);
+        const res = await API.get(`/trainer/clients`);
+        setClients(res.data);
+      } catch (err) {
+        console.error("Error fetching clients", err);
       } finally {
         setLoading(false);
       }
@@ -39,8 +37,6 @@ const TrainerClients = () => {
     fetchClients();
   }, []);
 
-
-  /** Handle Navigation **/
   const goToClientProfile = (clientId) => {
     router.push(`/dashboard/trainer/clients/${clientId}`);
   };
@@ -49,7 +45,6 @@ const TrainerClients = () => {
     router.push(`/dashboard/trainer/clients/${clientId}/create`);
   };
 
-  /** Handle Adding New Client **/
   const handleAddClient = async () => {
     if (!newClient.name || !newClient.email) {
       alert("Please fill in all fields.");
@@ -57,73 +52,68 @@ const TrainerClients = () => {
     }
 
     try {
-      const response = await API.post("/trainer/clients/add", {
+      const res = await API.post("/trainer/clients/add", {
         trainerId,
         name: newClient.name,
         email: newClient.email,
       });
 
-      setClients([...clients, response.data]); // Add new client to list
+      setClients([...clients, res.data]);
       setShowModal(false);
       setNewClient({ name: "", email: "" });
-    } catch (error) {
-      console.error("Error adding client", error);
+    } catch (err) {
+      console.error("Error adding client", err);
       alert("Error adding client");
     }
   };
 
   if (loading) {
     return (
-      <p className="text-center text-gray-500 mt-10">Loading clients...</p>
+      <p className="text-center text-gray-400 mt-10">Loading clients...</p>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-        Your Clients
-      </h2>
-
-      <button
-        onClick={() => router.push("/clients/create")}
-        className="mb-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
-      >
-        + Add New Client
-      </button>
+    <div className="max-w-6xl mx-auto mt-10 p-6 bg-gray-900 text-white rounded-2xl shadow-2xl">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-indigo-400">Your Clients</h2>
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition"
+        >
+          + Add Client
+        </button>
+      </div>
 
       {clients.length === 0 ? (
-        <p className="text-gray-500">No clients assigned yet.</p>
+        <p className="text-gray-400">No clients assigned yet.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-200">
+        <div className="overflow-x-auto border border-gray-700 rounded-lg">
+          <table className="w-full text-sm text-left bg-gray-800 rounded-lg">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2">Name</th>
-                <th className="border border-gray-300 px-4 py-2">Email</th>
-                <th className="border border-gray-300 px-4 py-2">Actions</th>
+              <tr className="text-indigo-300 bg-gray-700">
+                <th className="px-4 py-3">Name</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-white">
               {clients.map((client) => (
-                <tr key={client.id} className="text-center hover:bg-gray-50">
-                  <td className="border border-gray-300 px-4 py-2">
-                    {client.name}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {client.user.email}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 flex justify-center gap-2">
+                <tr key={client.id} className="hover:bg-gray-700 transition">
+                  <td className="px-4 py-3">{client.name}</td>
+                  <td className="px-4 py-3">{client.user.email}</td>
+                  <td className="px-4 py-3 flex flex-wrap gap-2">
                     <button
                       onClick={() => goToClientProfile(client.userId)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition"
+                      className="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded-md"
                     >
-                      View Progress
+                      View
                     </button>
                     <button
                       onClick={() => createWorkoutForClient(client.userId)}
-                      className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition"
+                      className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md"
                     >
-                      Assign Workout
+                      Assign
                     </button>
                   </td>
                 </tr>
@@ -133,46 +123,43 @@ const TrainerClients = () => {
         </div>
       )}
 
-      {/* MODAL FOR ADDING CLIENT */}
       {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-md shadow-lg">
-            <h3 className="text-xl font-semibold mb-4">Add New Client</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md text-white shadow-lg">
+            <h3 className="text-xl font-semibold mb-4 text-indigo-300">
+              Add New Client
+            </h3>
 
-            <label className="block text-gray-700 font-medium mb-2">
-              Name:
-            </label>
+            <label className="block text-sm text-gray-300 mb-1">Name:</label>
             <input
               type="text"
-              className="w-full p-2 border rounded-md mb-4"
+              className="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded"
               value={newClient.name}
               onChange={(e) =>
                 setNewClient({ ...newClient, name: e.target.value })
               }
             />
 
-            <label className="block text-gray-700 font-medium mb-2">
-              Email:
-            </label>
+            <label className="block text-sm text-gray-300 mb-1">Email:</label>
             <input
               type="email"
-              className="w-full p-2 border rounded-md mb-4"
+              className="w-full p-2 mb-4 bg-gray-700 border border-gray-600 rounded"
               value={newClient.email}
               onChange={(e) =>
                 setNewClient({ ...newClient, email: e.target.value })
               }
             />
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition"
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddClient}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
               >
                 Add Client
               </button>
