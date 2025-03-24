@@ -45,12 +45,10 @@ const ClientDashboard = () => {
         const response = await API.get("/auth/me", { withCredentials: true });
         const clientId = response.data.user.id;
         const user = await API.get(`/user/${response.data.user.id}`);
-        console.log(user.data.clientProfile);
         setUsersData(user.data.clientProfile);
-        const [programsRes, workoutsRes, historyRes, progressRes] =
+        const [programsRes, historyRes, progressRes] =
           await Promise.all([
             API.get(`/client/programs/${clientId}`),
-            API.get("/client/upcoming-workouts"),
             API.get(`/client/history/${clientId}`),
             API.get("/client/progress"),
           ]);
@@ -60,10 +58,10 @@ const ClientDashboard = () => {
         );
         setCurrentProgram(currentProgramData);
         setPrograms(programsRes.data);
-        setUpcomingWorkouts(workoutsRes.data);
         setWorkoutHistory(historyRes.data);
         setProgressData(progressRes.data);
       } catch (error) {
+        console.log(error)
         setError(error.response?.data?.error || "Unknown error");
       }
     };

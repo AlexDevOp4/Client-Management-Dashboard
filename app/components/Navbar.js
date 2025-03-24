@@ -27,21 +27,22 @@ const Navbar = () => {
 
   useEffect(() => {
     const getUserData = async () => {
-     if (window.location.pathname.includes('dashboard') === false) return;
-     
+      if (!cookie.token || !pathname.startsWith("/dashboard")) return null;
+
       try {
-        const userData = await API.get("/auth/me");
-        let usersId;
-        if (cookie.role === "trainer") {
-          usersId = userData.data.user.id;
-        } else {
-          usersId = userData.data.user.clientId;
-          const clientData = await API.get(`/user/${usersId}`);
-          setClientId(clientData.data.clientProfile.id);
+        const { data } = await API.get("/auth/me");
+        const user = data.user;
+
+        if (!user) return;
+
+        if (cookie.role === "client") {
+          const { data: clientData } = await API.get(`/user/${user.id}`);
+          setClientId(clientData.clientProfile.id);
+        } else if (cookie.role === "trainer") {
+          setClientId(user.id); // or setTrainerId if needed
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
-        return null;
+        console.error("Failed to fetch user data:", error);
       }
     };
 

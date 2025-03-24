@@ -18,4 +18,15 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+API.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      // Optionally ignore or log silently
+      return Promise.reject(); // Or just return
+    }
+    return Promise.reject(err);
+  }
+);
+
 export default API;
