@@ -127,7 +127,7 @@ const CreateWorkoutProgram = () => {
       </h2>
       <input
         type="text"
-        className="w-full p-2 border rounded-md mb-4"
+        className="w-full p-2 border rounded-md mb-4 text-gray-800"
         placeholder="Program Title"
         value={programTitle}
         onChange={(e) => setProgramTitle(e.target.value)}
@@ -138,7 +138,7 @@ const CreateWorkoutProgram = () => {
 
       {weeks.map((week, weekIndex) => (
         <div key={weekIndex} className="border p-4 mt-4">
-          <h3 className="text-lg font-semibold">Week {week.weekNumber}</h3>
+          <h3 className="text-lg text-black font-semibold">Week {week.weekNumber}</h3>
           <button
             onClick={() => addDay(weekIndex)}
             className="bg-green-500 text-white p-2 rounded mt-2"
@@ -148,7 +148,7 @@ const CreateWorkoutProgram = () => {
 
           {week.days.map((day, dayIndex) => (
             <div key={dayIndex} className="border p-2 mt-2">
-              <h4 className="text-md font-semibold">Day {day.dayNumber}</h4>
+              <h4 className="text-md font-semibold text-black">Day {day.dayNumber}</h4>
               <ExerciseForm
                 weekIndex={weekIndex}
                 dayIndex={dayIndex}
@@ -158,7 +158,7 @@ const CreateWorkoutProgram = () => {
 
               <ul className="list-disc pl-5">
                 {day.exercises.map((exercise, exIndex) => (
-                  <li key={exIndex} className="text-gray-600">
+                  <li key={exIndex} className="text-gray-800">
                     {exercise.name} -{" "}
                     {exercise.sets
                       ? `${exercise.sets} sets x ${exercise.reps} reps`
@@ -236,7 +236,7 @@ const ExerciseForm = ({
       <input
         type="text"
         list="exercise-list"
-        className="w-full p-2 border rounded-md mb-2"
+        className="w-full p-2 border rounded-md mb-2 text-black"
         placeholder="Exercise Name"
         name="name"
         value={exercise.name}
@@ -248,7 +248,7 @@ const ExerciseForm = ({
         ))}
       </datalist>
       <select
-        className="w-full p-2 border rounded-md mb-2"
+        className="w-full p-2 border rounded-md mb-2 text-black"
         name="category"
         value={exercise.category}
         onChange={(e) => setExercise({ ...exercise, category: e.target.value })}
@@ -261,14 +261,14 @@ const ExerciseForm = ({
         <>
           <input
             type="number"
-            className="w-full p-2 border rounded-md mb-2"
+            className="w-full p-2 border rounded-md mb-2 text-black"
             placeholder="Sets"
             name="sets"
             onChange={handleExerciseChange}
           />
           <input
             type="text" // Change to text to allow comma-separated values
-            className="w-full p-2 border rounded-md mb-2"
+            className="w-full p-2 border rounded-md mb-2 text-black"
             placeholder="Reps (comma separated)"
             name="reps"
             value={exercise.reps.join(", ")} // Display as comma-separated
@@ -279,14 +279,14 @@ const ExerciseForm = ({
         <>
           <input
             type="number"
-            className="w-full p-2 border rounded-md mb-2"
+            className="w-full p-2 border rounded-md mb-2 text-black"
             placeholder="Distance (m)"
             name="distance"
             onChange={handleExerciseChange}
           />
           <input
             type="number"
-            className="w-full p-2 border rounded-md mb-2"
+            className="w-full p-2 border rounded-md mb-2 text-black"
             placeholder="Calories"
             name="calories"
             onChange={handleExerciseChange}

@@ -15,6 +15,7 @@ const ClientDashboard = () => {
   const [cookies] = useCookies(["token", "role"]);
   const [usersData, setUsersData] = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [completedProgramData, setCompletedProgramData] = useState([]);
   const [error, setError] = useState(null);
   const router = useRouter();
 
@@ -46,22 +47,29 @@ const ClientDashboard = () => {
         const clientId = response.data.user.id;
         const user = await API.get(`/user/${response.data.user.id}`);
         setUsersData(user.data.clientProfile);
-        const [programsRes, historyRes, progressRes] =
-          await Promise.all([
-            API.get(`/client/programs/${clientId}`),
-            API.get(`/client/history/${clientId}`),
-            API.get("/client/progress"),
-          ]);
+        const [programsRes, historyRes, progressRes] = await Promise.all([
+          API.get(`/client/programs/${clientId}`),
+          API.get(`/client/history/${clientId}`),
+          API.get("/client/progress"),
+        ]);
 
         const currentProgramData = programsRes.data.filter(
-          (program) => program.status === "in-progress"
+          (program) => program.status === "active"
         );
+
+        const completedPrograms = programsRes.data.filter(
+          (program) => program.status === "completed"
+        );
+
+        setCompletedProgramData(completedPrograms);
+
+        console.log(programsRes.data);
         setCurrentProgram(currentProgramData);
         setPrograms(programsRes.data);
         setWorkoutHistory(historyRes.data);
         setProgressData(progressRes.data);
       } catch (error) {
-        console.log(error)
+        console.log(error);
         setError(error.response?.data?.error || "Unknown error");
       }
     };
@@ -149,9 +157,9 @@ const ClientDashboard = () => {
               />
             </div>
 
-            {workoutHistory.length > 0 ? (
+            {completedProgramData.length > 0 ? (
               <ul className={`${isCollapsed ? "hidden" : "space-y-3"}`}>
-                {workoutHistory.map((workout) => (
+                {completedProgramData.map((workout) => (
                   <li
                     key={workout.id}
                     className="bg-gray-800 border border-gray-700 p-3 rounded-md flex justify-between items-center"

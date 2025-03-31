@@ -18,6 +18,7 @@ const ProgramEdit = () => {
     const fetchProgramDetails = async () => {
       try {
         const response = await API.get(`/workouts/program/${programId}`);
+        console.log(response.data, "Fetched program details"); // Log the fetched program details
         setProgram(response.data);
         setLoading(false);
       } catch (error) {
@@ -39,6 +40,28 @@ const ProgramEdit = () => {
     fetchExercises();
   }, [programId]);
 
+  const updateWorkoutProgram = async (status) => {
+    try {
+      // Update the workout program in the backend
+      const response = await API.put(`/workouts/program/status/${programId}`, {
+        status: status,
+        completedDate: new Date().toISOString(), // Set the completed date if status is 'completed'
+      });
+      if (response.status === 200) {
+        console.log("Workout program updated successfully!");
+        // Optionally, you can redirect or show a success message
+        return response.data; // Return the updated program if needed
+      } else {
+        console.error("Failed to update workout program", response.statusText);
+        // Handle the error as needed (e.g., show an error message)
+      }
+    } catch (error) {
+      console.error("Error updating workout program", error);
+      // Handle the error as needed (e.g., show an error message)
+    }
+    return null; // Return null if the update failed
+  };
+
   const handleExerciseChange = (
     weekIndex,
     dayIndex,
@@ -59,13 +82,27 @@ const ProgramEdit = () => {
       }
 
       exercise[field][setIndex] = value;
+
+      // ✅ Check if the row is now complete
+      const weight = exercise.weight?.[setIndex];
+      const reps = exercise.actualReps?.[setIndex];
+
+      const isComplete =
+        typeof weight === "number" &&
+        weight > 0 &&
+        typeof reps === "number" &&
+        reps > 0;
+
+      const key = `${weekIndex}-${dayIndex}-${exIndex}-${setIndex}`;
+      setCompletedReps((prev) => ({
+        ...prev,
+        [key]: isComplete,
+      }));
+
       return updatedProgram;
     });
-  };
 
-  const toggleCompletion = (weekIndex, dayIndex, exIndex, setIndex) => {
-    const key = `${weekIndex}-${dayIndex}-${exIndex}-${setIndex}`;
-    setCompletedReps((prev) => ({ ...prev, [key]: !prev[key] }));
+    console.log(program, "Updated program after exercise change");
   };
 
   const logWorkout = async (logs) => {
@@ -92,16 +129,27 @@ const ProgramEdit = () => {
             setsCompleted: exercise.sets,
             repsCompleted: exercise.reps,
             weightUsed: exercise.weight,
+            actualReps: exercise.actualReps,
             notes: "",
             timeInSeconds: exercise.timeInSeconds || 0,
             distanceInMeters: exercise.distanceInMeters || 0,
             programId: programId,
-            completed: exercise.sets === exercise.reps.length,
+            completed:
+              exercise.sets === exercise.actualReps.length &&
+              exercise.sets === exercise.weight?.length, // Check if all sets are completed
           }))
         )
       );
+
+      const completedSets = logData.every((log) => log.completed); // Filter logs to only include completed sets
+      console.log(completedSets, "completedSets");
       console.log(program, "program");
       console.log(logData, "logData");
+
+      if (completedSets) {
+        updateWorkoutProgram("completed"); // Update the program status to completed if all sets are done
+      }
+
       // logWorkout(logData);
     } catch (error) {
       console.error("Error updating program", error);
@@ -168,25 +216,29 @@ const ProgramEdit = () => {
                                 </td>
                               )}
                               <td className="p-2">
-                                <input
-                                  type="number"
-                                  className="w-16 sm:w-20 md:w-24 p-1 sm:p-2 rounded bg-gray-700 border border-gray-600 text-white text-center"
-                                  value={exercise.weight?.[setIndex] || ""}
-                                  onChange={(e) =>
-                                    handleExerciseChange(
-                                      weekIndex,
-                                      dayIndex,
-                                      exIndex,
-                                      setIndex,
-                                      "weight",
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  placeholder="lbs"
-                                />
+                                {exercise.exercise.category === "Strength" ? (
+                                  <input
+                                    type="number"
+                                    className="w-16 sm:w-20 md:w-24 p-1 sm:p-2 rounded bg-gray-700 border border-gray-600 text-white text-center"
+                                    value={exercise.weight?.[setIndex] || ""}
+                                    onChange={(e) =>
+                                      handleExerciseChange(
+                                        weekIndex,
+                                        dayIndex,
+                                        exIndex,
+                                        setIndex,
+                                        "weight",
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    placeholder="lbs"
+                                  />
+                                ) : null}
                               </td>
                               <td className="p-2 text-center text-indigo-300 ">
-                                {exercise.reps[setIndex]}
+                                {exercise.exercise.category === "Cardio"
+                                  ? `${!exercise.calories ? "" : exercise.calories + " calories"} ${!exercise.duration ? "" : exercise.duration + " seconds"}`
+                                  : exercise.reps[setIndex]}
                               </td>
                               <td className="p-2">
                                 <input
@@ -203,21 +255,18 @@ const ProgramEdit = () => {
                                       Number(e.target.value)
                                     )
                                   }
-                                  placeholder="Reps"
+                                  placeholder={
+                                    exercise.exercise.category === "Cardio"
+                                      ? `${!exercise.calories ? "" : "calories"} ${!exercise.duration ? "" :  "time"}`
+                                      : "Reps"
+                                  }
                                 />
                               </td>
                               <td className="p-2 text-center">
                                 <button
-                                  onClick={() =>
-                                    toggleCompletion(
-                                      weekIndex,
-                                      dayIndex,
-                                      exIndex,
-                                      setIndex
-                                    )
-                                  }
+                                  disabled
                                   className={`w-6 h-6 rounded-full border-2  transition-all duration-200 ${
-                                    completedReps[key]
+                                    completedReps[key] // Check if this set is completed
                                       ? "bg-green-500 border-green-500"
                                       : "bg-gray-800 border-gray-600 hover:border-indigo-400"
                                   }`}
