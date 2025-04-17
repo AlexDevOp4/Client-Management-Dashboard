@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { TrashIcon } from "@heroicons/react/24/solid";
 import API from "../../../../../utils/api";
 
 const CreateWorkoutProgram = () => {
@@ -34,46 +35,56 @@ const CreateWorkoutProgram = () => {
   }, []);
 
   const addWeek = () => {
-    setWeeks((prevWeeks) => [
-      ...prevWeeks,
-      { weekNumber: prevWeeks.length + 1, days: [] },
-    ]);
+    setWeeks((prev) => [...prev, { weekNumber: prev.length + 1, days: [] }]);
   };
 
   const addDay = (weekIndex) => {
-    setWeeks((prevWeeks) => {
-      const updatedWeeks = [...prevWeeks];
-      updatedWeeks[weekIndex].days.push({
-        dayNumber: updatedWeeks[weekIndex].days.length + 1,
+    setWeeks((prev) => {
+      const updated = [...prev];
+      updated[weekIndex].days.push({
+        dayNumber: updated[weekIndex].days.length + 1,
         exercises: [],
       });
-      return updatedWeeks;
+      return updated;
+    });
+  };
+
+  const deleteWeek = (index) => {
+    const confirmDelete = confirm("Are you sure you want to delete this week?");
+    if (!confirmDelete) return;
+
+    setWeeks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const deleteDay = (weekIndex, dayIndex) => {
+    const confirmDelete = confirm("Delete this day?");
+    if (!confirmDelete) return;
+
+    setWeeks((prev) => {
+      const updated = [...prev];
+      updated[weekIndex].days = updated[weekIndex].days.filter(
+        (_, i) => i !== dayIndex
+      );
+      return updated;
     });
   };
 
   const addExerciseToDay = (weekIndex, dayIndex, exercise) => {
-    setWeeks((prevWeeks) => {
-      return prevWeeks.map((week, wIndex) => {
-        if (wIndex !== weekIndex) return week; // Keep other weeks unchanged
-
+    setWeeks((prev) => {
+      return prev.map((week, wIndex) => {
+        if (wIndex !== weekIndex) return week;
         return {
           ...week,
           days: week.days.map((day, dIndex) => {
-            if (dIndex !== dayIndex) return day; // Keep other days unchanged
-
+            if (dIndex !== dayIndex) return day;
             return {
               ...day,
-              exercises: [...day.exercises, { ...exercise }], // ✅ Append exercise properly
+              exercises: [...day.exercises, { ...exercise }],
             };
           }),
         };
       });
     });
-
-    console.log(
-      `Exercise added to week ${weekIndex}, day ${dayIndex}:`,
-      exercise
-    );
   };
 
   const submitWorkoutProgram = async () => {
@@ -87,20 +98,20 @@ const CreateWorkoutProgram = () => {
       clientId,
       title: programTitle,
       durationWeeks: weeks.length,
-      repeateWeek: 1, // Defaults to repeating week 1
+      repeateWeek: 1,
       weeks: weeks.map((week) => ({
         weekNumber: week.weekNumber,
         days: week.days.map((day) => ({
           dayNumber: day.dayNumber,
           title: `Day ${day.dayNumber}`,
-          scheduledDate: new Date(), // Assigns today as default
+          scheduledDate: new Date(),
           exercises: day.exercises.map((ex) => ({
             name: ex.name,
             category: ex.category,
             sets: ex.sets ? parseInt(ex.sets) : null,
             reps: Array.isArray(ex.reps)
               ? ex.reps.map((rep) => parseInt(rep))
-              : [], // Ensure it's an array of numbers
+              : [],
             distance: ex.distance ? parseFloat(ex.distance) : null,
             calories: ex.calories ? parseFloat(ex.calories) : null,
           })),
@@ -109,7 +120,6 @@ const CreateWorkoutProgram = () => {
     };
 
     try {
-      console.log(requestBody);
       await API.post("/workouts/program", requestBody);
       alert("Workout Program Created Successfully!");
       setProgramTitle("");
@@ -121,34 +131,65 @@ const CreateWorkoutProgram = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+    <div className="max-w-4xl mx-auto mt-10 p-6 bg-gray-900 shadow-lg rounded-xl text-white">
+      <h2 className="text-3xl font-bold text-indigo-400 mb-4">
         Create Workout Program
       </h2>
       <input
         type="text"
-        className="w-full p-2 border rounded-md mb-4 text-gray-800"
+        className="w-full p-3 border rounded-md mb-4 bg-gray-800 border-gray-600 text-white"
         placeholder="Program Title"
         value={programTitle}
         onChange={(e) => setProgramTitle(e.target.value)}
       />
-      <button onClick={addWeek} className="bg-blue-500 text-white p-2 rounded">
-        Add Week
+      <button
+        onClick={addWeek}
+        className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded mb-6"
+      >
+        + Add Week
       </button>
 
       {weeks.map((week, weekIndex) => (
-        <div key={weekIndex} className="border p-4 mt-4">
-          <h3 className="text-lg text-black font-semibold">Week {week.weekNumber}</h3>
+        <div
+          key={weekIndex}
+          className="border border-gray-700 p-4 mt-4 rounded-xl bg-gray-800"
+        >
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold text-indigo-300">
+              Week {week.weekNumber}
+            </h3>
+            <button
+              onClick={() => deleteWeek(weekIndex)}
+              className="text-sm text-red-500 hover:underline"
+            >
+              <TrashIcon className="h-5 w-5" />
+            </button>
+          </div>
+
           <button
             onClick={() => addDay(weekIndex)}
-            className="bg-green-500 text-white p-2 rounded mt-2"
+            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded mt-2"
           >
-            Add Day
+            + Add Day
           </button>
 
           {week.days.map((day, dayIndex) => (
-            <div key={dayIndex} className="border p-2 mt-2">
-              <h4 className="text-md font-semibold text-black">Day {day.dayNumber}</h4>
+            <div
+              key={dayIndex}
+              className="mt-4 border border-gray-600 rounded p-4 bg-gray-900"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-lg font-semibold text-indigo-200">
+                  Day {day.dayNumber}
+                </h4>
+                <button
+                  onClick={() => deleteDay(weekIndex, dayIndex)}
+                  className="text-sm text-red-500 hover:underline"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                </button>
+              </div>
+
               <ExerciseForm
                 weekIndex={weekIndex}
                 dayIndex={dayIndex}
@@ -156,12 +197,12 @@ const CreateWorkoutProgram = () => {
                 allExercises={allExercises}
               />
 
-              <ul className="list-disc pl-5">
+              <ul className="list-disc pl-5 mt-2 text-gray-300">
                 {day.exercises.map((exercise, exIndex) => (
-                  <li key={exIndex} className="text-gray-800">
-                    {exercise.name} -{" "}
+                  <li key={exIndex}>
+                    {exercise.name} —{" "}
                     {exercise.sets
-                      ? `${exercise.sets} sets x ${exercise.reps} reps`
+                      ? `${exercise.sets} sets x ${exercise.reps.join(", ")} reps`
                       : `${exercise.distance}m, ${exercise.calories} cal`}
                   </li>
                 ))}
@@ -173,7 +214,7 @@ const CreateWorkoutProgram = () => {
 
       <button
         onClick={submitWorkoutProgram}
-        className="w-full bg-green-600 text-white py-2 rounded-md mt-4 hover:bg-green-700 transition"
+        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg mt-6"
       >
         Save Program
       </button>
@@ -191,7 +232,7 @@ const ExerciseForm = ({
     name: "",
     category: "",
     sets: "",
-    reps: "",
+    reps: [],
     distance: "",
     calories: "",
   });
@@ -209,7 +250,6 @@ const ExerciseForm = ({
         calories: "",
       });
     } else if (name === "reps") {
-      // Convert the comma-separated input into an array of numbers
       setExercise((prev) => ({
         ...prev,
         reps: value.split(",").map((rep) => parseInt(rep.trim(), 10) || 0),
@@ -219,13 +259,12 @@ const ExerciseForm = ({
     }
   };
 
-  // Refresh inputs after adding exercises
   const refreshInputs = () => {
     setExercise({
       name: "",
       category: "",
       sets: "",
-      reps: "",
+      reps: [],
       distance: "",
       calories: "",
     });
@@ -236,7 +275,7 @@ const ExerciseForm = ({
       <input
         type="text"
         list="exercise-list"
-        className="w-full p-2 border rounded-md mb-2 text-black"
+        className="w-full p-2 border rounded-md mb-2 bg-gray-800 border-gray-600 text-white"
         placeholder="Exercise Name"
         name="name"
         value={exercise.name}
@@ -247,8 +286,9 @@ const ExerciseForm = ({
           <option key={ex.id} value={ex.name} />
         ))}
       </datalist>
+
       <select
-        className="w-full p-2 border rounded-md mb-2 text-black"
+        className="w-full p-2 border rounded-md mb-2 bg-gray-800 border-gray-600 text-white"
         name="category"
         value={exercise.category}
         onChange={(e) => setExercise({ ...exercise, category: e.target.value })}
@@ -257,49 +297,52 @@ const ExerciseForm = ({
         <option value="Strength">Strength</option>
         <option value="Cardio">Cardio</option>
       </select>
-      {exercise.category === "Strength" ? (
+
+      {exercise.category === "Strength" && (
         <>
           <input
             type="number"
-            className="w-full p-2 border rounded-md mb-2 text-black"
-            placeholder="Sets"
             name="sets"
+            className="w-full p-2 border rounded-md mb-2 bg-gray-800 border-gray-600 text-white"
+            placeholder="Sets"
             onChange={handleExerciseChange}
           />
           <input
-            type="text" // Change to text to allow comma-separated values
-            className="w-full p-2 border rounded-md mb-2 text-black"
-            placeholder="Reps (comma separated)"
+            type="text"
             name="reps"
-            value={exercise.reps.join(", ")} // Display as comma-separated
+            className="w-full p-2 border rounded-md mb-2 bg-gray-800 border-gray-600 text-white"
+            placeholder="Reps (comma separated)"
+            value={exercise.reps.join(", ")}
             onChange={handleExerciseChange}
           />
         </>
-      ) : exercise.category === "Cardio" ? (
+      )}
+
+      {exercise.category === "Cardio" && (
         <>
           <input
             type="number"
-            className="w-full p-2 border rounded-md mb-2 text-black"
-            placeholder="Distance (m)"
             name="distance"
+            className="w-full p-2 border rounded-md mb-2 bg-gray-800 border-gray-600 text-white"
+            placeholder="Distance (m)"
             onChange={handleExerciseChange}
           />
           <input
             type="number"
-            className="w-full p-2 border rounded-md mb-2 text-black"
-            placeholder="Calories"
             name="calories"
+            className="w-full p-2 border rounded-md mb-2 bg-gray-800 border-gray-600 text-white"
+            placeholder="Calories"
             onChange={handleExerciseChange}
           />
         </>
-      ) : null}
+      )}
+
       <button
         onClick={() => {
-          console.log("Adding exercise:", exercise); // Debug before adding
           addExerciseToDay(weekIndex, dayIndex, exercise);
           refreshInputs();
         }}
-        className="bg-blue-600 text-white p-2 rounded"
+        className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded"
       >
         Add Exercise
       </button>

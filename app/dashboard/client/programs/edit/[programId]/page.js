@@ -86,12 +86,18 @@ const ProgramEdit = () => {
       // ✅ Check if the row is now complete
       const weight = exercise.weight?.[setIndex];
       const reps = exercise.actualReps?.[setIndex];
+      const calories = exercise.calories?.[setIndex];
+      const duration = exercise.duration?.[setIndex];
 
       const isComplete =
-        typeof weight === "number" &&
-        weight > 0 &&
-        typeof reps === "number" &&
-        reps > 0;
+        (typeof weight === "number" &&
+          weight > 0 &&
+          typeof reps === "number" &&
+          reps > 0) ||
+        (typeof calories === "number" &&
+          calories > 0 &&
+          typeof duration === "number" &&
+          duration > 0);
 
       const key = `${weekIndex}-${dayIndex}-${exIndex}-${setIndex}`;
       setCompletedReps((prev) => ({
@@ -233,34 +239,70 @@ const ProgramEdit = () => {
                                     }
                                     placeholder="lbs"
                                   />
-                                ) : null}
+                                ) : (
+                                  <input
+                                    type="number"
+                                    className="w-16 sm:w-20 md:w-24 p-1 sm:p-2 rounded bg-gray-700 border border-gray-600 text-white text-center"
+                                    value={exercise.calories?.[setIndex] || ""}
+                                    onChange={(e) =>
+                                      handleExerciseChange(
+                                        weekIndex,
+                                        dayIndex,
+                                        exIndex,
+                                        setIndex,
+                                        "calories",
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    placeholder="cal"
+                                  />
+                                )}
                               </td>
                               <td className="p-2 text-center text-indigo-300 ">
                                 {exercise.exercise.category === "Cardio"
-                                  ? `${!exercise.calories ? "" : exercise.calories + " calories"} ${!exercise.duration ? "" : exercise.duration + " seconds"}`
+                                  ? `${!exercise.calories ? "" : exercise.calories + "cal"} ${!exercise.duration ? "" : exercise.duration + "s"}`
                                   : exercise.reps[setIndex]}
                               </td>
                               <td className="p-2">
-                                <input
-                                  type="number"
-                                  className="w-16 sm:w-20 md:w-24 p-1 sm:p-2 rounded bg-gray-700 border border-gray-600 text-white text-center"
-                                  value={exercise.actualReps?.[setIndex] || ""}
-                                  onChange={(e) =>
-                                    handleExerciseChange(
-                                      weekIndex,
-                                      dayIndex,
-                                      exIndex,
-                                      setIndex,
-                                      "actualReps",
-                                      Number(e.target.value)
-                                    )
-                                  }
-                                  placeholder={
-                                    exercise.exercise.category === "Cardio"
-                                      ? `${!exercise.calories ? "" : "calories"} ${!exercise.duration ? "" :  "time"}`
-                                      : "Reps"
-                                  }
-                                />
+                                {exercise.exercise.category === "Strength" ? (
+                                  <input
+                                    type="number"
+                                    className="w-16 sm:w-20 md:w-24 p-1 sm:p-2 rounded bg-gray-700 border border-gray-600 text-white text-center"
+                                    value={
+                                      exercise.actualReps?.[setIndex] || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleExerciseChange(
+                                        weekIndex,
+                                        dayIndex,
+                                        exIndex,
+                                        setIndex,
+                                        "actualReps",
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    placeholder="Reps"
+                                  />
+                                ) : (
+                                  <input
+                                    type="number"
+                                    className="w-16 sm:w-20 md:w-24 p-1 sm:p-2 rounded bg-gray-700 border border-gray-600 text-white text-center"
+                                    value={
+                                      exercise.duration?.[setIndex] || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleExerciseChange(
+                                        weekIndex,
+                                        dayIndex,
+                                        exIndex,
+                                        setIndex,
+                                        "duration",
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    placeholder="Time"
+                                  />
+                                )}
                               </td>
                               <td className="p-2 text-center">
                                 <button

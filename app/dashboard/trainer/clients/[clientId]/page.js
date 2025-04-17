@@ -1,6 +1,6 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import ProgressChart from "../../../../components/ProgressChart";
 import API from "../../../../utils/api";
 
@@ -11,7 +11,7 @@ const ClientProfile = () => {
   const [workoutPrograms, setWorkoutPrograms] = useState([]);
   const [progressData, setProgressData] = useState([]);
   const [exerciseId, setExerciseId] = useState(null);
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState([]);
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,6 +19,7 @@ const ClientProfile = () => {
     const fetchUser = async () => {
       try {
         const response = await API.get("/auth/me");
+        console.log(response.data.user);
         setUserData(response.data.user);
       } catch (error) {
         console.error("Error fetching user data", error);
@@ -27,14 +28,13 @@ const ClientProfile = () => {
     fetchUser();
   }, []);
 
-  // Fetch Client's Workout Programs
   useEffect(() => {
     if (!clientId) return;
 
     const fetchClientsWorkouts = async () => {
       try {
         const response = await API.get(`client/programs/${clientId}`);
-        setWorkoutPrograms(response.data); // ✅ Store workout programs
+        setWorkoutPrograms(response.data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching client workouts", error);
@@ -64,10 +64,12 @@ const ClientProfile = () => {
   }, [clientId]);
 
   useEffect(() => {
-    if (!userData || !clientId || !exerciseId) return;
-
     const fetchClientProgress = async () => {
+      console.log(userData)
+      if (!userData || !clientId || !exerciseId) return;
+
       try {
+        console.log(userData);
         const response = await API.get(
           `trainer/${userData.id}/clients/${clientId}/exercises/${exerciseId}/progress`
         );
@@ -85,87 +87,102 @@ const ClientProfile = () => {
     fetchClientProgress();
   }, [userData, clientId, exerciseId]);
 
-  const goToCleintsProgram = (programId) => {
+  const goToClientsProgram = (programId) => {
     router.push(`/dashboard/trainer/program/${programId}`);
   };
 
   return (
-    <div className="max-w-5xl md:max-w-full md:p-4 mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+    <div className="max-w-6xl mx-auto mt-10 p-6 bg-gray-900 text-white rounded-xl shadow-2xl">
+      <h2 className="text-3xl font-bold text-indigo-400 mb-6">
         Client Profile
       </h2>
 
       {loading ? (
-        <p className="text-center text-gray-500">Loading data...</p>
+        <p className="text-center text-gray-400">Loading data...</p>
       ) : (
         <>
-          {/* ✅ Section: Workout Programs */}
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">
-            Workout Programs
-          </h3>
-          {workoutPrograms.length > 0 ? (
-            <ul className="space-y-4">
-              {workoutPrograms.map((program) => (
-                <li
-                  key={program.id}
-                  className="p-4 bg-gray-100 rounded-lg shadow-md flex justify-between items-center cursor-pointer hover:bg-gray-200"
-                  onClick={() => goToCleintsProgram(program.id)} // ✅ Navigate to program edit page
-                >
-                  <span className="font-medium">{program.title}</span>
-                  <span
-                    className={`text-sm px-2 py-1 rounded ${
+          {/* Workout Programs */}
+          <div>
+            <h3 className="text-2xl font-semibold text-indigo-300 mb-4">
+              Workout Programs
+            </h3>
+            {workoutPrograms.length > 0 ? (
+              <ul className="space-y-4">
+                {workoutPrograms.map((program) => (
+                  <li
+                    key={program.id}
+                    className={`p-4 rounded-lg shadow-md transition duration-200 cursor-pointer hover:shadow-xl flex justify-between items-center ${
                       program.status === "completed"
-                        ? "bg-green-500 text-white"
-                        : "bg-yellow-500 text-white"
+                        ? "bg-gray-800 border border-green-500"
+                        : "bg-gray-800 border border-indigo-500"
                     }`}
+                    onClick={() => goToClientsProgram(program.id)}
                   >
-                    {program.status === "completed"
-                      ? "Complete"
-                      : "In Progress"}
-                  </span>
-                </li>
+                    <span className="text-lg font-medium">{program.title}</span>
+                    <span
+                      className={`text-xs font-semibold px-2 py-1 rounded ${
+                        program.status === "completed"
+                          ? "bg-green-600 text-white"
+                          : "bg-yellow-600 text-white"
+                      }`}
+                    >
+                      {program.status === "completed"
+                        ? "Completed"
+                        : "In Progress"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-400">No workout programs found.</p>
+            )}
+          </div>
+
+          {/* Client Progress */}
+          <div className="mt-10">
+            <h3 className="text-2xl font-semibold text-indigo-300 mb-2">
+              Client Progress
+            </h3>
+            <label className="block text-sm text-gray-300 mb-1">
+              Select Exercise
+            </label>
+            <select
+              onChange={(e) => setExerciseId(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 text-white p-2 rounded-md mb-6"
+            >
+              <option value="">-- Select Exercise --</option>
+              {exercises.map((exercise) => (
+                <option key={exercise.id} value={exercise.id}>
+                  {exercise.name}
+                </option>
               ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500">No workout programs found.</p>
-          )}
+            </select>
 
-          {/* ✅ Section: Exercise Progress */}
-          <h3 className="text-xl font-semibold text-gray-700 mt-6 mb-4">
-            Client Progress
-          </h3>
-          <label className="block text-gray-700 font-medium mb-2">
-            Select Exercise:
-          </label>
-          <select
-            onChange={(e) => setExerciseId(e.target.value)}
-            className="w-full p-2 border rounded-md mb-4 focus:outline-none focus:ring focus:border-blue-400"
-          >
-            <option value="">-- Select Exercise --</option>
-            {exercises.map((exercise) => (
-              <option key={exercise.id} value={exercise.id}>
-                {exercise.name}
-              </option>
-            ))}
-          </select>
+            {exerciseId && (
+              <div className="space-y-8">
+                <div>
+                  <h4 className="text-lg font-semibold text-indigo-200 mb-2">
+                    Weight Over Time
+                  </h4>
+                  <div className="bg-gray-800 rounded-lg p-4 shadow-inner">
+                    <ProgressChart
+                      progressData={progressData}
+                      metric="weight"
+                    />
+                  </div>
+                </div>
 
-          {exerciseId && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                Weight Over Time
-              </h3>
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <ProgressChart progressData={progressData} metric="weight" />
+                <div>
+                  <h4 className="text-lg font-semibold text-indigo-200 mb-2">
+                    Reps Over Time
+                  </h4>
+                  <div className="bg-gray-800 rounded-lg p-4 shadow-inner">
+                    <ProgressChart progressData={progressData} metric="reps" />
+                  </div>
+                </div>
               </div>
-
-              <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">
-                Reps Over Time
-              </h3>
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <ProgressChart progressData={progressData} metric="reps" />
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>
