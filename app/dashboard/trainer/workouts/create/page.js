@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import API from "../../../../utils/api";
+import API from "@/utils/api";
 
 const CreateWorkout = () => {
   const [clients, setClients] = useState([]);

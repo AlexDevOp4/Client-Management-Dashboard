@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import API from "../../../utils/api";
+import API from "@/utils/api";
 
 const ClientPrograms = () => {
   const [programs, setPrograms] = useState([]);

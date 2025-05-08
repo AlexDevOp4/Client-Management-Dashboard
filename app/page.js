@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCookies } from "react-cookie";
 import Link from "next/link";
-import API from "./utils/api";
+import API from "@/utils/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -67,7 +67,7 @@ export default function Login() {
         </form>
 
         <p className="mt-6 text-sm text-center text-gray-400">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/auth/register"
             className="text-indigo-400 hover:underline"

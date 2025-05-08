@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, use } from "react";
 import { useParams } from "next/navigation";
-import API from "../../../../utils/api";
+import API from "@/utils/api";
 import {
   LineChart,
   Line,

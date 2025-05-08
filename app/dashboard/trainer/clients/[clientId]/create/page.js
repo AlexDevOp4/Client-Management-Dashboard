@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { TrashIcon } from "@heroicons/react/24/solid";
-import API from "../../../../../utils/api";
+import API from "@/utils/api";
 
 const CreateWorkoutProgram = () => {
   const [programTitle, setProgramTitle] = useState("");

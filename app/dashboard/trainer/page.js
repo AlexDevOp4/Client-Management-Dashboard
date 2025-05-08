@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import API from "../../utils/api";
-import withAuth from "../../components/withAuth";
+import API from "@/utils/api";
+import withAuth from "@/components/withAuth";
 
 const TrainerDashboard = () => {
   const router = useRouter();

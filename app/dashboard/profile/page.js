@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import API from "../../utils/api";
+import API from "@/utils/api";
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);

@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import API from "../../utils/api";
+import API from "@/utils/api";
 
 export default function Register() {
   const { register, handleSubmit } = useForm();

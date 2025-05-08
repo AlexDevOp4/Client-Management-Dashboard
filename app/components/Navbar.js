@@ -9,7 +9,7 @@ import {
   MenuItems,
   Transition,
 } from "@headlessui/react";
-import API from "../utils/api";
+import API from "@/utils/api";
 import { useEffect, useState, Fragment } from "react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useRouter, usePathname } from "next/navigation";

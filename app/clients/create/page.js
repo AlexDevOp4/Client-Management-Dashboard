@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import API from "../../utils/api";
+import API from "@/utils/api";
 
 const CreateClientPage = () => {
   const router = useRouter();
