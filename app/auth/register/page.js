@@ -9,7 +9,6 @@ export default function Register() {
   const router = useRouter();
 
   const onSubmit = async (data) => {
-    console.log("Register Data:", data);
     try {
       const registerUser = await API.post("/auth/register", data);
       if (registerUser.status === 201) {
