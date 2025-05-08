@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import API from "@/utils/api";
 
 const ClientPrograms = () => {
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { clientId } = useRouter().query;
+  const { clientId } = useParams();
 
   useEffect(() => {
     if (!clientId) return;
@@ -15,7 +15,7 @@ const ClientPrograms = () => {
     const fetchPrograms = async () => {
       try {
         const response = await API.get(`/client/programs/${clientId}`);
-        console.log(response.data, 'response data');
+        console.log(response.data, "response data");
         setPrograms(response.data);
       } catch (error) {
         console.error("Error fetching programs", error);
