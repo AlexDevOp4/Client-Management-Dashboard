@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://client-management-dashboard-backend-production.up.railway.app/api",
+  baseURL:
+    "https://client-management-dashboard-backend-production.up.railway.app/api",
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
 });
 
 API.interceptors.request.use((config) => {
@@ -22,8 +22,7 @@ API.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      // Optionally ignore or log silently
-      return Promise.reject(); // Or just return
+      return Promise.reject(); // Optionally redirect to login
     }
     return Promise.reject(err);
   }
