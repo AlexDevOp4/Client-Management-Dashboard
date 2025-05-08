@@ -132,7 +132,7 @@ const Navbar = () => {
                     <MenuItem>
                       {({ active }) => (
                         <a
-                          href="/profile"
+                          href="/dashboard/profile"
                           className={`block px-4 py-2 text-sm ${active ? "bg-indigo-700" : ""}`}
                         >
                           Your Profile
@@ -142,7 +142,7 @@ const Navbar = () => {
                     <MenuItem>
                       {({ active }) => (
                         <a
-                          href="/settings"
+                          href="/dashboard/settings"
                           className={`block px-4 py-2 text-sm ${active ? "bg-indigo-700" : ""}`}
                         >
                           Settings
