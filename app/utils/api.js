@@ -6,24 +6,18 @@ const API = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: true, // ✅ Keep this
 });
 
-API.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
+// REMOVE Authorization injection
+API.interceptors.request.use((config) => config);
 
+// Keep the response handler
 API.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      return Promise.reject(); // Optionally redirect to login
+      return Promise.reject();
     }
     return Promise.reject(err);
   }
