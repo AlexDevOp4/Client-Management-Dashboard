@@ -94,7 +94,7 @@ const CreateClientPage = () => {
           <div className="mb-4 text-green-500 text-center">{success}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 text-black">
           <div>
             <label className="block text-sm font-medium text-black">
               Email
