@@ -24,7 +24,7 @@ export default function Login() {
         { withCredentials: true }
       );
 
-      localStorage.setItem("token", data.token);
+      // localStorage.setItem("token", data.token);
       console.log("Saved token:", localStorage.getItem("token"));
       setCookie("role", data.user.role);
       router.push(`/dashboard/${data.user.role}`);
