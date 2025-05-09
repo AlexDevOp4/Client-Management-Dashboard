@@ -64,7 +64,6 @@ const CreateClientPage = () => {
       return;
     }
 
-    console.log(formDataToSend);
 
     try {
       const response = await API.post(`/client/${userData.id}`, formDataToSend);
@@ -97,7 +96,7 @@ const CreateClientPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-black">
               Email
             </label>
             <input
@@ -111,7 +110,7 @@ const CreateClientPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-black">
               Full Name
             </label>
             <input
@@ -125,7 +124,7 @@ const CreateClientPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-black">
               Age
             </label>
             <input
@@ -139,7 +138,7 @@ const CreateClientPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-black">
               Weight (lbs)
             </label>
             <input
@@ -153,7 +152,7 @@ const CreateClientPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-black">
               Body Fat (%)
             </label>
             <input

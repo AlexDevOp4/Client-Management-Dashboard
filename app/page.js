@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCookies } from "react-cookie";
+import axios from "axios";
 import Link from "next/link";
 import API from "@/utils/api";
 
@@ -17,18 +18,15 @@ export default function Login() {
     setError("");
 
     try {
-      const { data } = await API.post(
-        "auth/login",
+      const { data } = await axios.post(
+        "https://client-management-dashboard-backend-production.up.railway.app/api/auth/login",
         { email, password },
-        { withCredentials: true }
+        { withCredentials: true } // 👈 Send cookie!
       );
 
-      localStorage.setItem("token", data.token);
-      console.log("Saved token:", localStorage.getItem("token"));
-      setCookie("role", data.user.role);
       router.push(`/dashboard/${data.user.role}`);
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.error || "Login failed");
     }
   };
 
