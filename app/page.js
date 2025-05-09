@@ -17,10 +17,15 @@ export default function Login() {
     setError("");
 
     try {
-      const { data } = await API.post("/auth/login", { email, password });
+      const { data } = await API.post(
+        "auth/login",
+        { email, password },
+        { withCredentials: true }
+      );
+
       localStorage.setItem("token", data.token);
       console.log("Saved token:", localStorage.getItem("token"));
-      setCookie("role", data.user.role);
+      // setCookie("role", data.user.role);
       router.push(`/dashboard/${data.user.role}`);
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
