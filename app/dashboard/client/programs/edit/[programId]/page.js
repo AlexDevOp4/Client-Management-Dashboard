@@ -149,15 +149,12 @@ const ProgramEdit = () => {
       );
 
       const completedSets = logData.every((log) => log.completed); // Filter logs to only include completed sets
-      console.log(completedSets, "completedSets");
-      console.log(program, "program");
-      console.log(logData, "logData");
 
       if (completedSets) {
         updateWorkoutProgram("completed"); // Update the program status to completed if all sets are done
       }
 
-      // logWorkout(logData);
+      logWorkout(logData);
     } catch (error) {
       console.error("Error updating program", error);
       alert("Error updating program");
