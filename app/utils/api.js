@@ -3,6 +3,7 @@ import axios from "axios";
 const API = axios.create({
   baseURL:
     "https://client-management-dashboard-backend-production.up.railway.app/api",
+  // "http://localhost:8080/api", // Local development
   headers: {
     "Content-Type": "application/json",
   },
