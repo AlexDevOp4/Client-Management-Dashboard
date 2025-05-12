@@ -1,37 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Ashtiany Fit – Client & Trainer Management Platform
 
-## Getting Started
+Ashtiany Fit is a full-stack SaaS fitness platform built to streamline personal training operations. It includes two distinct portals:
 
-First, run the development server:
+- **Client Dashboard** – For individuals to view and complete assigned workouts.
+- **Trainer Dashboard** – For personal trainers to manage clients, assign workouts, and monitor progress.
+
+---
+
+## 🔧 Tech Stack
+
+| Layer       | Tech                                   |
+|-------------|----------------------------------------|
+| Frontend    | React.js (Next.js), Tailwind CSS       |
+| Backend     | Node.js, Express.js                    |
+| Database    | PostgreSQL (via Prisma ORM)            |
+| Hosting     | Vercel (Frontend) + Railway (Backend)  |
+| Auth        | JSON Web Tokens (JWT)                  |
+| API         | RESTful Architecture                   |
+
+---
+
+## 🧑‍💻 Trainer Dashboard Features
+
+- Add new clients and view all assigned clients.
+- Assign custom workout programs with weekly and daily breakdowns.
+- Log real-time updates on client performance.
+- Track workout completion and review logged data.
+
+**Screenshots**  
+![Trainer Dashboard](./public/images/Trainer-Dashboard.png)  
+![Client Management View](./public/images/Trainer-Client-View.png)  
+![Create Program View](./public/images/Trainer-Create-Program.png)
+
+---
+
+## 🧍‍♂️ Client Dashboard Features
+
+- View current and completed workout programs.
+- Log actual reps, weight used, and duration.
+- Autofill previous workout data for easier tracking.
+- Receive updates when a trainer assigns a new program.
+
+**Screenshots**  
+![Client Dashboard](./public/images/Client-Dashboard.png)  
+![Update Program View](./public/images/Client-Update-Program-View.png)
+
+---
+
+## 🗂 Repo Structure
+
+This project is split into two repositories:
+
+- **Frontend**: `ashtiany-fit-frontend` (Next.js + Tailwind)
+- **Backend**: `ashtiany-fit-backend` (Express.js + PostgreSQL)
+
+---
+
+## 🚀 Getting Started
+
+### Frontend
 
 ```bash
+cd ashtiany-fit-frontend
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Backend
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+cd ashtiany-fit-backend
+npm install
+npx prisma migrate dev
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> Ensure you set up environment variables in both repos (`.env`) for DB and API URLs.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## ⚠️ Known Issues
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Client-Management-Dashboard
+- CORS errors may occur if frontend and backend URLs are not correctly whitelisted.
+- Workout data caching can be stale unless logs are properly refetched after each save.
